@@ -1,0 +1,154 @@
+/* StarBorder Component Styles - React Bits inspired */
+
+.star-border {
+    position: relative;
+    display: inline-flex;
+    padding: 1px;
+    border-radius: 10px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            transparent 40%,
+            var(--border-color) 50%,
+            transparent 60%,
+            transparent 100%);
+    background-size: 200% 100%;
+    background-position: 100% 0;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: background-position 0.3s ease;
+}
+
+/* Animation only on hover */
+.star-border:hover {
+    animation: star-border-move var(--speed, 4s) linear infinite;
+}
+
+.star-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(90deg,
+            transparent,
+            var(--border-color),
+            transparent);
+    background-size: 200% 100%;
+    background-position: 100% 0;
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    transition: background-position 0.3s ease;
+}
+
+/* Animation only on hover for pseudo-element */
+.star-border:hover::before {
+    animation: star-border-move var(--speed, 4s) linear infinite;
+}
+
+.star-border::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(147, 51, 234, 0.2),
+            transparent);
+    background-size: 200% 100%;
+    background-position: 100% 0;
+    filter: blur(4px);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Glow on hover */
+.star-border:hover::after {
+    opacity: 0.6;
+    animation: star-border-move var(--speed, 4s) linear infinite;
+}
+
+.star-border-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 9px;
+    background: inherit;
+    padding: 0.4rem 0.9rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+/* Light mode inner background */
+.star-border-inner {
+    background: white;
+    color: #374151;
+}
+
+/* Dark mode support */
+.dark .star-border-inner,
+html.dark .star-border-inner {
+    background: #1f2937;
+    color: #f3f4f6;
+}
+
+/* Also check for parent with dark class */
+.bg-gray-800 .star-border-inner {
+    background: #1f2937;
+    color: #f3f4f6;
+}
+
+/* Hover effects */
+.star-border:hover .star-border-inner {
+    background: rgba(147, 51, 234, 0.05);
+}
+
+.bg-gray-800 .star-border:hover .star-border-inner {
+    background: rgba(147, 51, 234, 0.15);
+}
+
+/* Active state - filled */
+.star-border.active {
+    background: linear-gradient(135deg, rgb(147, 51, 234), rgb(219, 39, 119));
+}
+
+.star-border.active .star-border-inner {
+    background: transparent;
+    color: white;
+}
+
+.star-border.active::before {
+    display: none;
+}
+
+.star-border.active::after {
+    opacity: 0.4;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent);
+}
+
+/* Animation keyframes */
+@keyframes star-border-move {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}

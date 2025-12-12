@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaaya - Feature Tester</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-8">🎯 Vaaya Feature Tester</h1>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Authentication -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-2xl font-bold mb-4">🔐 Authentication</h2>
+                <div class="space-y-2">
+                    <a href="/login"
+                        class="block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-center">
+                        Go to Login Page
+                    </a>
+                    <button onclick="testRegister()"
+                        class="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Test Register API
+                    </button>
+                </div>
+                <div id="auth-result" class="mt-4 p-3 bg-gray-50 rounded text-sm"></div>
+            </div>
+
+            <!-- Pages -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-2xl font-bold mb-4">📄 Frontend Pages</h2>
+                <div class="space-y-2">
+                    <a href="/dashboard"
+                        class="block bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 text-center">
+                        Dashboard
+                    </a>
+                    <a href="/trips"
+                        class="block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 text-center">
+                        Trip Planner
+                    </a>
+                    <a href="/quests"
+                        class="block bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 text-center">
+                        Quests
+                    </a>
+                    <a href="/heatmap"
+                        class="block bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 text-center">
+                        Heatmap
+                    </a>
+                    <a href="/chat"
+                        class="block bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600 text-center">
+                        Chat
+                    </a>
+                </div>
+            </div>
+
+            <!-- AI Features -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-2xl font-bold mb-4">🤖 AI Features</h2>
+                <div class="space-y-2">
+                    <button onclick="testAIHealth()"
+                        class="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Check AI Health
+                    </button>
+                    <button onclick="testChat()"
+                        class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Test AI Chat
+                    </button>
+                </div>
+                <div id="ai-result" class="mt-4 p-3 bg-gray-50 rounded text-sm max-h-40 overflow-y-auto"></div>
+            </div>
+
+            <!-- Server Status -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-2xl font-bold mb-4">📊 Server Status</h2>
+                <div class="space-y-2">
+                    <button onclick="testHealth()"
+                        class="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Check Health
+                    </button>
+                    <button onclick="testAPI()"
+                        class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        View All Routes
+                    </button>
+                </div>
+                <div id="server-result" class="mt-4 p-3 bg-gray-50 rounded text-sm max-h-40 overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="mt-8 bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-bold mb-4">📝 Test Results</h2>
+            <div id="main-result" class="p-4 bg-gray-50 rounded font-mono text-sm max-h-96 overflow-y-auto">
+                Click buttons above to test features...
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function log(message, elementId = 'main-result') {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<div class="mb-2">${new Date().toLocaleTimeString()}: ${message}</div>` + el.innerHTML;
+        }
+
+        async function testHealth() {
+            try {
+                const res = await axios.get('http://localhost:5000/health');
+                document.getElementById('server-result').innerHTML = JSON.stringify(res.data, null, 2);
+                log('✅ Health check passed', 'main-result');
+            } catch (error) {
+                log('❌ Health check failed: ' + error.message, 'main-result');
+            }
+        }
+
+        async function testAPI() {
+            try {
+                const res = await axios.get('http://localhost:5000/api');
+                document.getElementById('server-result').innerHTML = JSON.stringify(res.data, null, 2);
+                log('✅ API routes loaded', 'main-result');
+            } catch (error) {
+                log('❌ API test failed: ' + error.message, 'main-result');
+            }
+        }
+
+        async function testRegister() {
+            try {
+                const testUser = {
+                    email: `test${Date.now()}@example.com`,
+                    password: 'Test123!',
+                    name: 'Test User',
+                    role: 'tourist'
+                };
+                const res = await axios.post('http://localhost:5000/auth/register', testUser);
+                document.getElementById('auth-result').innerHTML = JSON.stringify(res.data, null, 2);
+                log('✅ Registration successful', 'main-result');
+            } catch (error) {
+                const msg = error.response?.data || error.message;
+                document.getElementById('auth-result').innerHTML = JSON.stringify(msg, null, 2);
+                log('⚠️ Registration: ' + JSON.stringify(msg), 'main-result');
+            }
+        }
+
+        async function testAIHealth() {
+            try {
+                const res = await axios.get('http://localhost:5000/ai/health');
+                document.getElementById('ai-result').innerHTML = JSON.stringify(res.data, null, 2);
+                log('✅ AI health check passed', 'main-result');
+            } catch (error) {
+                log('❌ AI health failed: ' + error.message, 'main-result');
+            }
+        }
+
+        async function testChat() {
+            try {
+                const res = await axios.post('http://localhost:5000/ai/chat', {
+                    message: 'Hello! Tell me about Vaaya.',
+                    user_id: 'test_user'
+                });
+                document.getElementById('ai-result').innerHTML = JSON.stringify(res.data, null, 2);
+                log('✅ AI chat responded', 'main-result');
+            } catch (error) {
+                const msg = error.response?.data || error.message;
+                document.getElementById('ai-result').innerHTML = JSON.stringify(msg, null, 2);
+                log('⚠️ AI chat: ' + JSON.stringify(msg), 'main-result');
+            }
+        }
+
+        // Auto-run health check on load
+        window.onload = () => {
+            testHealth();
+        };
+    </script>
+</body>
+
+</html>

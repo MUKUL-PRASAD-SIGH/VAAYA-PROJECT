@@ -1,0 +1,69 @@
+========================================
+VAAYA - QUICK START GUIDE
+========================================
+
+✅ BACKEND & FRONTEND NOW RUNNING!
+
+📱 FRONTEND PAGES (Open in browser):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Dashboard (Main)
+   http://localhost:5000/dashboard
+   - Overview, stats, recent activity
+
+2. Quests (Gamification)
+   http://localhost:5000/quests
+   - Browse quests, complete challenges
+   - Upload photos for verification
+
+3. Trips (Planning)
+   http://localhost:5000/trips
+   - Plan trips, view itineraries
+   - AI-powered suggestions
+
+4. Heatmap (NEW! - Phase 1.4) ⭐
+   http://localhost:5000/heatmap
+   - Interactive Leaflet.js map
+   - Real-time crowd density
+   - Quest markers with popups
+   - Try: Enter "Delhi, India" + today's date
+
+5. Chat (NEW! - Phase 1.3) ⭐
+   http://localhost:5000/chat
+   - Real-time Socket.IO chat
+   - AI chatbot with Gemini
+   - Talk to locals/tourists
+
+🔧 API ENDPOINTS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Health: GET http://localhost:5000/health
+- Quests: GET http://localhost:5000/api/quests
+- Quest Locations: GET http://localhost:5000/api/quests/locations
+- Heatmap: POST http://localhost:5000/ai/heatmap
+
+🎯 PHASE 1 FEATURES COMPLETE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ 1.1: Gemini API (gemini-2.5-flash)
+✅ 1.2: Image verification (TensorFlow, OpenCV)
+✅ 1.3: Socket.IO real-time chat
+✅ 1.4: Leaflet.js interactive maps
+
+💡 HOW TO USE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Check the CMD window - server should show:
+   "Running on http://127.0.0.1:5000"
+
+2. Open any URL above in your browser
+
+3. Test the new heatmap:
+   - Go to /heatmap
+   - Enter "Delhi, India"
+   - Pick today's date
+   - Click "Generate"
+   - See interactive map with quest markers!
+
+4. To stop server:
+   - Go to CMD window
+   - Press Ctrl+C
+
+🚀 ENJOY VAAYA!
+========================================

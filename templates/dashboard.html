@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Vayaa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold text-purple-600">🇮🇳 Vayaa</h1>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="/dashboard" class="text-purple-600 font-semibold">Dashboard</a>
+                    <a href="/quests" class="text-gray-600 hover:text-purple-600">Quests</a>
+                    <a href="/trips" class="text-gray-600 hover:text-purple-600">Trips</a>
+                    <a href="/heatmap" class="text-gray-600 hover:text-purple-600">Heatmap</a>
+                    <a href="/chat" class="text-gray-600 hover:text-purple-600">Chat</a>
+                    <div class="relative">
+                        <button id="user-menu-btn" class="flex items-center space-x-2">
+                            <img src="https://ui-avatars.com/api/?name=User" class="w-8 h-8 rounded-full"
+                                id="user-avatar">
+                            <span id="username-display" class="text-gray-700 font-medium">User</span>
+                        </button>
+                        <div id="user-dropdown"
+                            class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2">
+                            <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                            <a href="/settings" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a>
+                            <hr class="my-2">
+                            <a href="#" id="logout-btn"
+                                class="block px-4 py-2 text-red-600 hover:bg-gray-100">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Welcome Section -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Welcome back, <span id="welcome-username">User</span>!
+                🇮🇳</h2>
+            <p class="text-gray-600">Your travel memories and upcoming adventures</p>
+        </div>
+
+        <!-- Quick Action: Plan Trip -->
+        <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-xl p-8 mb-8 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-bold mb-2">Ready for your next adventure?</h3>
+                    <p class="text-purple-100">Plan your trip and discover sustainable quests at your destination</p>
+                </div>
+                <a href="/trips"
+                    class="bg-white text-purple-600 px-8 py-3 rounded-lg font-bold hover:bg-purple-50 transition">
+                    Plan a Trip 🗺️
+                </a>
+            </div>
+        </div>
+
+        <!-- Trip Memories & Photos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Past Trips / Memories -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">📸 Trip Memories</h3>
+                    <button class="text-purple-600 hover:text-purple-800 text-sm font-semibold">View All</button>
+                </div>
+                <div id="trip-memories" class="space-y-4">
+                    <div class="text-center py-8 text-gray-400">
+                        <p>No memories yet. Start your first trip!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photos Uploaded -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">🏞️ Your Travel Photos</h3>
+                    <button class="text-purple-600 hover:text-purple-800 text-sm font-semibold">View Gallery</button>
+                </div>
+                <div id="travel-photos" class="grid grid-cols-3 gap-3">
+                    <div class="col-span-3 text-center py-8 text-gray-400">
+                        <p>Upload photos from your quests!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Trips & Active Quests -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Upcoming Trips -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">✈️ Upcoming Trips</h3>
+                    <a href="/trips" class="text-purple-600 hover:text-purple-800 text-sm font-semibold">Plan New
+                        Trip</a>
+                </div>
+                <div id="upcoming-trips" class="space-y-4">
+                    <div class="text-center py-8 text-gray-400">
+                        <p>No upcoming trips planned</p>
+                        <a href="/trips"
+                            class="inline-block mt-3 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                            Plan Your First Trip
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Completed -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">✅ Completed Tasks</h3>
+                    <span class="text-sm text-gray-500"><span id="completed-count">0</span> completed</span>
+                </div>
+                <div id="completed-tasks" class="space-y-3">
+                    <div class="text-center py-8 text-gray-400">
+                        <p>Complete quests to see them here!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Total Points</p>
+                        <p class="text-3xl font-bold text-gray-800" id="total-points">0</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Quests Completed</p>
+                        <p class="text-3xl font-bold text-gray-800" id="completed-quests">0</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Trips Planned</p>
+                        <p class="text-3xl font-bold text-gray-800" id="active-trips">0</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-yellow-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-semibold">Photos Shared</p>
+                        <p class="text-3xl font-bold text-gray-800" id="photos-count">0</p>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded-full">
+                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Active Quests -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">Active Quests</h3>
+                        <a href="/quests" class="text-purple-600 hover:text-purple-800 font-semibold">View All →</a>
+                    </div>
+                    <div id="active-quests-list" class="space-y-4">
+                        <!-- Quest items will be loaded here -->
+                        <div class="text-center py-8 text-gray-500">
+                            <p>Loading quests...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">Recent Activity</h3>
+                    <div id="recent-activity" class="space-y-4">
+                        <!-- Activity items will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Upcoming Trips -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Upcoming Trips</h3>
+                    <div id="upcoming-trips" class="space-y-4">
+                        <!-- Trip cards will be loaded here -->
+                        <div class="text-center py-4 text-gray-500">
+                            <p>No upcoming trips</p>
+                        </div>
+                    </div>
+                    <button onclick="window.location.href='/trips'"
+                        class="w-full mt-4 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition">
+                        Plan a Trip
+                    </button>
+                </div>
+
+                <!-- Leaderboard Preview -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Top Explorers</h3>
+                    <div id="leaderboard-preview" class="space-y-3">
+                        <!-- Leaderboard items will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg p-6 text-white">
+                    <h3 class="text-xl font-bold mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <button onclick="window.location.href='/quests'"
+                            class="w-full bg-white/20 hover:bg-white/30 backdrop-blur py-2 px-4 rounded-lg transition">
+                            🎯 Find Nearby Quests
+                        </button>
+                        <button onclick="window.location.href='/heatmap'"
+                            class="w-full bg-white/20 hover:bg-white/30 backdrop-blur py-2 px-4 rounded-lg transition">
+                            🗺️ View Crowd Heatmap
+                        </button>
+                        <button onclick="window.location.href='/chat'"
+                            class="w-full bg-white/20 hover:bg-white/30 backdrop-blur py-2 px-4 rounded-lg transition">
+                            💬 Chat with Locals
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+    <script src="/static/js/notifications.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+
+</html>
