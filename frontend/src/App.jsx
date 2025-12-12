@@ -12,6 +12,7 @@ import Chat from './pages/Chat'
 import { Profile, Settings, Personalisation } from './pages/user'
 import { Login, Register, ForgotPassword, VerifyEmail } from './pages/auth'
 import RoleSelection from './pages/RoleSelection'
+import Onboarding from './pages/Onboarding'
 import LocalGuideDashboard from './pages/local-guide/LocalGuideDashboard'
 import ExperiencesMarketplace from './pages/Experiences'
 
@@ -27,6 +28,13 @@ function AppContent() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
+
+                {/* Onboarding - Protected but before dashboard */}
+                <Route path="/onboarding" element={
+                    <ProtectedRoute>
+                        <Onboarding />
+                    </ProtectedRoute>
+                } />
 
                 {/* Protected Routes */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />

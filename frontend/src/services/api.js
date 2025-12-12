@@ -65,12 +65,14 @@ export const aiApi = {
 }
 
 export const userApi = {
+    getMe: () => api.get('/api/users/me'),
     getProfile: (userId) => api.get(`/api/users/profile/${userId}`),
     updateProfile: (data) => api.put('/api/users/profile', data),
     getNearbyLocals: (lat, lng) => api.get(`/api/users/locals/nearby?lat=${lat}&lng=${lng}`),
     updateFcmToken: (token) => api.post('/api/users/fcm-token', { fcm_token: token }),
     getPreferences: () => api.get('/api/users/preferences'),
     updatePreferences: (data) => api.post('/api/users/preferences', data),
+    onboard: (data) => api.post('/api/users/onboard', data),
 }
 
 // AI Chat History API (persistent storage)

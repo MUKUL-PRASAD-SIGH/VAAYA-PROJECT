@@ -20,12 +20,18 @@ export default function Onboarding() {
     };
 
     const handleFinalStep = async () => {
+        const isLocalGuide = formData.role === 'Local Guide';
+        const roleValue = isLocalGuide ? 'local' : 'user';
+
         const userPreferences = {
             role: formData.role,
             interests: formData.interests,
             budget: formData.budget,
             onboarding_completed: true
         };
+
+        // Save userRole to localStorage for routing decisions
+        localStorage.setItem('userRole', isLocalGuide ? 'local' : 'tourist');
 
         // Save to localStorage as fallback
         localStorage.setItem('userPreferences', JSON.stringify({
@@ -34,16 +40,25 @@ export default function Onboarding() {
             completedAt: new Date().toISOString()
         }));
 
-        // Try to save to backend API
+        // Try to save to backend API (linked to Firebase account)
         try {
             const { userApi } = await import('../services/api');
+
+            // Onboard user with role - this links role to Firebase UID
+            await userApi.onboard({
+                preference: roleValue,
+                name: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).displayName : ''
+            });
+
+            // Also save preferences
             await userApi.updatePreferences(userPreferences);
-            console.log("Preferences saved to backend");
+            console.log("User onboarded and preferences saved to backend");
         } catch (error) {
             console.log("Backend save failed, using localStorage fallback:", error);
         }
 
-        navigate('/dashboard');
+        // Redirect based on role
+        navigate(isLocalGuide ? '/local-guide' : '/dashboard');
     };
 
     // Card styles for dark mode support

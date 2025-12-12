@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { userApi } from '../../services/api'
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -78,10 +79,37 @@ export default function Register() {
 
         try {
             await loginWithGoogle()
-            // Check if onboarding was completed (returning user via Google)
+
+            // Try to fetch user's role from backend (per-account persistence)
+            try {
+                const response = await userApi.getMe()
+                const userData = response.data?.user
+
+                if (userData && userData.preferences?.onboarding_completed) {
+                    // User has completed onboarding - use backend-stored role
+                    const backendRole = userData.role || userData.preference
+                    const isLocal = backendRole === 'local'
+                    localStorage.setItem('userRole', isLocal ? 'local' : 'tourist')
+                    localStorage.setItem('userPreferences', JSON.stringify({
+                        ...userData.preferences,
+                        onboardingCompleted: true
+                    }))
+                    navigate(isLocal ? '/local-guide' : '/dashboard', { replace: true })
+                    return
+                }
+            } catch (apiError) {
+                console.log('Backend user fetch failed, using localStorage fallback:', apiError)
+            }
+
+            // Fallback to localStorage check
             const prefs = localStorage.getItem('userPreferences')
             const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
-            navigate(onboardingCompleted ? '/dashboard' : '/onboarding', { replace: true })
+            if (onboardingCompleted) {
+                const userRole = localStorage.getItem('userRole')
+                navigate(userRole === 'local' ? '/local-guide' : '/dashboard', { replace: true })
+            } else {
+                navigate('/onboarding', { replace: true })
+            }
         } catch (err) {
             console.error('Google sign-in failed:', err)
         } finally {
