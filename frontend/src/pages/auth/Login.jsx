@@ -41,7 +41,29 @@ export default function Login() {
         clearError()
 
         try {
-            await login(email, password)
+            const user = await login(email, password)
+
+            // Email-based role mapping for specific users
+            const localGuideEmails = ['mukulprasad958@gmail.com', '1ms24ci076@msrit.edu']
+            const travelerEmails = ['mukulprasad957@gmail.com', 'vol670668@gmail.com']
+
+            const userEmail = user?.email || email
+
+            // Check if email belongs to a local guide
+            if (localGuideEmails.includes(userEmail.toLowerCase())) {
+                localStorage.setItem('userRole', 'local')
+                localStorage.setItem('userPreferences', JSON.stringify({ onboardingCompleted: true }))
+                navigate('/local-guide', { replace: true })
+                return
+            }
+
+            // Check if email belongs to a traveler
+            if (travelerEmails.includes(userEmail.toLowerCase())) {
+                localStorage.setItem('userRole', 'tourist')
+                localStorage.setItem('userPreferences', JSON.stringify({ onboardingCompleted: true }))
+                navigate('/dashboard', { replace: true })
+                return
+            }
 
             // Try to fetch user's role from backend (per-account persistence)
             try {
@@ -87,7 +109,29 @@ export default function Login() {
         clearError()
 
         try {
-            await loginWithGoogle()
+            const user = await loginWithGoogle()
+
+            // Email-based role mapping for specific users
+            const localGuideEmails = ['mukulprasad958@gmail.com', '1ms24ci076@msrit.edu']
+            const travelerEmails = ['mukulprasad957@gmail.com', 'vol670668@gmail.com']
+
+            const userEmail = user?.email || ''
+
+            // Check if email belongs to a local guide
+            if (localGuideEmails.includes(userEmail.toLowerCase())) {
+                localStorage.setItem('userRole', 'local')
+                localStorage.setItem('userPreferences', JSON.stringify({ onboardingCompleted: true }))
+                navigate('/local-guide', { replace: true })
+                return
+            }
+
+            // Check if email belongs to a traveler
+            if (travelerEmails.includes(userEmail.toLowerCase())) {
+                localStorage.setItem('userRole', 'tourist')
+                localStorage.setItem('userPreferences', JSON.stringify({ onboardingCompleted: true }))
+                navigate('/dashboard', { replace: true })
+                return
+            }
 
             // Try to fetch user's role from backend (per-account persistence)
             try {
