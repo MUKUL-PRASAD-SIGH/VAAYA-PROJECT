@@ -1,0 +1,29 @@
+# Python Dependencies for VAAYA Project
+#just for linters ###2 brownie pt 2
+
+# Web Framework
+flask==2.3.3
+flask-cors==4.0.0
+flask-socketio==5.3.6
+
+# Database
+pymongo==4.5.0
+
+# Authentication
+bcrypt==4.0.1
+pyjwt==2.8.0
+firebase-admin==6.2.0
+
+# API & HTTP
+requests==2.31.0
+httpx==0.28.1
+
+# Linting & Code Quality
+flake8==7.0.0
+black==24.1.1
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Google AI
+google-generativeai==0.3.1
