@@ -48,9 +48,9 @@ export const questsApi = {
 }
 
 export const tripsApi = {
-    getAll: () => api.get('/api/trips'),
+    getAll: () => api.get('/api/trips/'),
     getById: (id) => api.get(`/api/trips/${id}`),
-    create: (data) => api.post('/api/trips', data),
+    create: (data) => api.post('/api/trips/', data),
     updateStatus: (id, status) => api.put(`/api/trips/${id}/status`, { status }),
     addItinerary: (id, item) => api.post(`/api/trips/${id}/itinerary`, item),
     predict: (data) => api.post('/api/trips/predict', data),
@@ -69,6 +69,15 @@ export const userApi = {
     updateProfile: (data) => api.put('/api/users/profile', data),
     getNearbyLocals: (lat, lng) => api.get(`/api/users/locals/nearby?lat=${lat}&lng=${lng}`),
     updateFcmToken: (token) => api.post('/api/users/fcm-token', { fcm_token: token }),
+    getPreferences: () => api.get('/api/users/preferences'),
+    updatePreferences: (data) => api.post('/api/users/preferences', data),
+}
+
+// AI Chat History API (persistent storage)
+export const aiChatApi = {
+    getMessages: () => api.get('/api/chat/ai-history/'),
+    addMessage: (role, text) => api.post('/api/chat/ai-history/', { role, text }),
+    clearHistory: () => api.delete('/api/chat/ai-history/'),
 }
 
 export const chatApi = {

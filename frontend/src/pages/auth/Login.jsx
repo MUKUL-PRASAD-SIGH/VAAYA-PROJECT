@@ -36,7 +36,10 @@ export default function Login() {
 
         try {
             await login(email, password)
-            navigate(from, { replace: true })
+            // Check if onboarding was completed
+            const prefs = localStorage.getItem('userPreferences')
+            const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
+            navigate(onboardingCompleted ? '/dashboard' : '/onboarding', { replace: true })
         } catch (err) {
             // Error is handled by AuthContext
             console.error('Login failed:', err)
@@ -52,7 +55,10 @@ export default function Login() {
 
         try {
             await loginWithGoogle()
-            navigate(from, { replace: true })
+            // Check if onboarding was completed
+            const prefs = localStorage.getItem('userPreferences')
+            const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
+            navigate(onboardingCompleted ? '/dashboard' : '/onboarding', { replace: true })
         } catch (err) {
             console.error('Google sign-in failed:', err)
         } finally {

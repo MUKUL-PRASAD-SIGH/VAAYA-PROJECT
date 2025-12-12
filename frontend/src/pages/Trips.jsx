@@ -20,6 +20,8 @@ export default function Trips() {
     const [hotels, setHotels] = useState([])
     const [myTrips, setMyTrips] = useState([])
     const [tripsLoading, setTripsLoading] = useState(true)
+    const [tripSaved, setTripSaved] = useState(false)
+    const [saving, setSaving] = useState(false)
     const [calendarStats, setCalendarStats] = useState({
         tripDuration: '0 days',
         avgCrowd: '0.0',
@@ -64,8 +66,10 @@ export default function Trips() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
+        setTripSaved(false)
 
         try {
+            // Generate AI itinerary
             const itineraryResponse = await aiApi.generateItinerary({
                 destination: formData.destination,
                 start_date: formData.startDate,
@@ -78,7 +82,6 @@ export default function Trips() {
             setItinerary(itineraryResponse.data.itinerary || '')
             setTransportation(itineraryResponse.data.transportation || null)
             setHotels(itineraryResponse.data.hotels || [])
-
             setShowResults(true)
         } catch (error) {
             console.error('Error generating trip plan:', error)
@@ -99,6 +102,34 @@ export default function Trips() {
             setShowResults(true)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleSaveTrip = async () => {
+        setSaving(true)
+        try {
+            const tripData = {
+                destination: formData.destination,
+                start_date: formData.startDate,
+                end_date: formData.endDate,
+                location_coords: { lat: 12.9716, lng: 77.5946 }, // Default to Bangalore
+                country_code: 'IN',
+                preferences: {
+                    budget: formData.budget,
+                    purpose: formData.purpose
+                }
+            }
+            console.log('Saving trip with data:', tripData)
+            const response = await tripsApi.create(tripData)
+            console.log('Trip saved successfully:', response)
+            setTripSaved(true)
+            loadMyTrips()
+        } catch (error) {
+            console.error('Error saving trip:', error)
+            console.error('Error response:', error.response?.data)
+            alert(`Failed to save trip: ${error.response?.data?.error || error.message}`)
+        } finally {
+            setSaving(false)
         }
     }
 
@@ -199,6 +230,22 @@ export default function Trips() {
                         {loading ? 'Generating...' : 'Generate Trip Plan with AI 🚀'}
                     </button>
                 </form>
+
+                {/* Save Trip Button - appears after results */}
+                {showResults && !tripSaved && (
+                    <button
+                        onClick={handleSaveTrip}
+                        disabled={saving}
+                        className="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 px-6 rounded-lg hover:from-green-600 hover:to-emerald-700 transition shadow-lg disabled:opacity-50"
+                    >
+                        {saving ? 'Saving...' : '💾 Save Trip to My Trips'}
+                    </button>
+                )}
+                {tripSaved && (
+                    <div className="w-full mt-4 bg-green-100 text-green-800 font-semibold py-3 px-6 rounded-lg text-center">
+                        ✅ Trip saved successfully!
+                    </div>
+                )}
             </div>
 
             {/* Trip Results */}
