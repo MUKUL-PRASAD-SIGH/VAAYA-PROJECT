@@ -1,387 +1,300 @@
 """
-Quest routes - Quest management and discovery
-Quests are generated based on planned trips and verified by AI
+🌱 AI-Verified Clean-Up Quest System — Updated Flow
+----------------------------------------------------
+1️⃣ Start Quest (upload before image + verify location)
+2️⃣ Complete Quest (upload after image + run AI verification)
 """
+
 from flask import Blueprint, request, jsonify
-from utils.jwt_utils import token_required
-from bson.objectid import ObjectId
+from bson import ObjectId
 from datetime import datetime
-from models import db
+from werkzeug.utils import secure_filename
+import os, math
 
-quest_bp = Blueprint('quests', __name__)
+from db import db
+from ai.quest_verifier import verify_cleanliness
+from utils.jwt_utils import token_required
 
-def generate_sustainable_quests(destination):
-    """
-    Generate sustainable and hospitable quests for a destination
-    These should promote:
-    - Local culture and heritage
-    - Environmental sustainability
-    - Supporting local businesses
-    - Respectful tourism
-    """
-    # Base quest templates focused on sustainability and hospitality
-    quest_templates = {
-        'Delhi': [
-            {
-                'title': 'Support Local Artisans',
-                'description': 'Visit a local craft market and purchase from artisans directly',
-                'category': 'culture',
-                'difficulty': 'easy',
-                'points': 50,
-                'requirements': ['Photo with the artisan', 'Share their story'],
-                'icon': '🎨',
-                'sustainability_focus': 'Supporting local livelihoods'
-            },
-            {
-                'title': 'Plastic-Free Day Challenge',
-                'description': 'Spend a day without using single-use plastics',
-                'category': 'environment',
-                'difficulty': 'medium',
-                'points': 75,
-                'requirements': ['Document alternatives used', 'Photo of reusable items'],
-                'icon': '♻️',
-                'sustainability_focus': 'Reducing waste'
-            },
-            {
-                'title': 'Heritage Walk with Local Guide',
-                'description': 'Hire a local guide for a walking tour of heritage sites',
-                'category': 'culture',
-                'difficulty': 'easy',
-                'points': 60,
-                'requirements': ['Photo at heritage site', 'Guide recommendation'],
-                'icon': '🚶',
-                'sustainability_focus': 'Supporting local guides'
-            }
-        ],
-        'Goa': [
-            {
-                'title': 'Beach Clean-Up',
-                'description': 'Participate in or organize a beach clean-up activity',
-                'category': 'environment',
-                'difficulty': 'medium',
-                'points': 100,
-                'requirements': ['Photo of collected waste', 'Proper disposal proof'],
-                'icon': '🏖️',
-                'sustainability_focus': 'Environmental conservation'
-            },
-            {
-                'title': 'Local Cuisine Experience',
-                'description': 'Dine at a family-run local restaurant',
-                'category': 'food',
-                'difficulty': 'easy',
-                'points': 40,
-                'requirements': ['Photo of meal', 'Restaurant review'],
-                'icon': '🍛',
-                'sustainability_focus': 'Supporting local businesses'
-            }
-        ],
-        'Jaipur': [
-            {
-                'title': 'Traditional Craft Workshop',
-                'description': 'Learn block printing or pottery from local craftspeople',
-                'category': 'culture',
-                'difficulty': 'medium',
-                'points': 80,
-                'requirements': ['Photo of your creation', 'Artisan appreciation note'],
-                'icon': '🏺',
-                'sustainability_focus': 'Preserving traditional skills'
-            },
-            {
-                'title': 'Water Conservation Awareness',
-                'description': 'Visit stepwells and learn about traditional water conservation',
-                'category': 'environment',
-                'difficulty': 'easy',
-                'points': 50,
-                'requirements': ['Photo at stepwell', 'Share conservation learnings'],
-                'icon': '💧',
-                'sustainability_focus': 'Water conservation'
-            }
-        ],
-        'Agra': [
-            {
-                'title': 'Eco-Friendly Transport',
-                'description': 'Use cycle rickshaws or walk instead of motor vehicles',
-                'category': 'environment',
-                'difficulty': 'easy',
-                'points': 45,
-                'requirements': ['Photo of eco-transport', 'Distance covered'],
-                'icon': '🚲',
-                'sustainability_focus': 'Reducing carbon footprint'
-            }
-        ]
-    }
-    
-    # Find matching quests for the destination
-    for city in quest_templates.keys():
-        if city.lower() in destination.lower():
-            return quest_templates[city]
-    
-    # Default sustainable quests for any location
-    return [
-        {
-            'title': 'Eat at Local Restaurants',
-            'description': f'Support local economy by dining at family-owned restaurants in {destination}',
-            'category': 'food',
-            'difficulty': 'easy',
-            'points': 40,
-            'requirements': ['Photo of meal', 'Restaurant name'],
-            'icon': '🍽️',
-            'sustainability_focus': 'Supporting local businesses'
-        },
-        {
-            'title': 'Public Transport Champion',
-            'description': 'Use public transportation for your journey',
-            'category': 'environment',
-            'difficulty': 'easy',
-            'points': 35,
-            'requirements': ['Photo of public transport', 'Route details'],
-            'icon': '🚌',
-            'sustainability_focus': 'Eco-friendly travel'
-        },
-        {
-            'title': 'Interact with Locals',
-            'description': 'Have a meaningful conversation with a local resident',
-            'category': 'culture',
-            'difficulty': 'medium',
-            'points': 55,
-            'requirements': ['Share what you learned', 'Respectful photo (with permission)'],
-            'icon': '🤝',
-            'sustainability_focus': 'Cultural exchange'
-        }
-    ]
+quest_bp = Blueprint('quests', __name__, url_prefix='/api/quests')
 
-@quest_bp.route('/for-trip/<trip_id>', methods=['GET'])
+UPLOAD_FOLDER = 'uploads/quests'
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# =====================
+# Helper Functions
+# =====================
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """Haversine formula (meters)"""
+    R = 6371000
+    phi1, phi2 = map(math.radians, [lat1, lat2])
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    a = math.sin(delta_phi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(delta_lambda/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+
+# =====================
+# STEP 1: Start Quest
+# =====================
+
+@quest_bp.route('/start/<quest_id>', methods=['POST'])
 @token_required
-def get_quests_for_trip(current_user, trip_id):
+def start_quest(current_user, quest_id):
     """
-    Get sustainable quests for a specific trip
-    Only returns quests after trip is planned
+    Traveler starts a cleanup quest:
+    - Upload BEFORE image
+    - Verify proximity
+    - Mark quest as 'in_progress'
     """
+
     try:
-        # Get the trip
-        trips_collection = db.trips
-        trip = trips_collection.find_one({
-            '_id': ObjectId(trip_id),
-            'user_id': current_user['user_id']
+        quest = db.quests.find_one({"_id": ObjectId(quest_id)})
+        if not quest:
+            return jsonify({'error': 'Quest not found'}), 404
+
+        user_lat = float(request.form.get('latitude'))
+        user_lng = float(request.form.get('longitude'))
+
+        # Check GPS proximity
+        quest_lng, quest_lat = quest['location']['coordinates']
+        distance = calculate_distance(user_lat, user_lng, quest_lat, quest_lng)
+        if distance > 100:
+            return jsonify({'error': 'Too far from quest location', 'distance_m': round(distance, 2)}), 403
+
+        # Handle BEFORE image upload
+        if 'before_image' not in request.files:
+            return jsonify({'error': 'Before image is required'}), 400
+
+        before_file = request.files['before_image']
+        if not allowed_file(before_file.filename):
+            return jsonify({'error': 'Invalid file type'}), 400
+
+        filename = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_before_{before_file.filename}")
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        before_file.save(filepath)
+
+        # Save progress in submissions collection
+        db.quest_submissions.insert_one({
+            'quest_id': ObjectId(quest_id),
+            'user_id': ObjectId(current_user['_id']),
+            'before_image': filepath,
+            'status': 'in_progress',
+            'started_at': datetime.utcnow(),
+            'location': {'lat': user_lat, 'lng': user_lng}
         })
-        
-        if not trip:
-            return jsonify({'error': 'Trip not found'}), 404
-        
-        destination = trip.get('destination', '')
-        
-        # Generate sustainable quests for this destination
-        quests = generate_sustainable_quests(destination)
-        
-        # Add trip_id and unique id to each quest
-        for i, quest in enumerate(quests):
-            quest['id'] = f"{trip_id}_{i}"
-            quest['trip_id'] = trip_id
-            quest['location'] = destination
-            quest['ai_verified'] = True  # Will be verified by AI when completed
-        
-        return jsonify({
-            'trip': {
-                'id': str(trip['_id']),
-                'destination': destination,
-                'start_date': trip.get('start_date'),
-                'end_date': trip.get('end_date')
-            },
-            'quests': quests,
-            'count': len(quests),
-            'message': 'Complete these sustainable quests during your trip!'
-        }), 200
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
-@quest_bp.route('/', methods=['GET'])
-@quest_bp.route('', methods=['GET'])
-def get_quests():
-    """
-    Get all available quests
-    Note: Quests are now trip-specific. Use /quests/for-trip/<trip_id> instead
-    """
-    try:
-        return jsonify({
-            'message': 'Plan a trip first to see sustainable quests for your destination!',
-            'quests': [],
-            'count': 0,
-            'info': 'Use /api/quests/for-trip/<trip_id> to get quests for a specific trip'
-        }), 200
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@quest_bp.route('/<quest_id>', methods=['GET'])
-def get_quest(quest_id):
-    """
-    Get specific quest details
-    """
-    try:
-        # Parse trip_id and quest index from quest_id
-        if '_' in quest_id:
-            trip_id, quest_index = quest_id.split('_')
-            
-            # Get trip destination
-            trips_collection = db.trips
-            trip = trips_collection.find_one({'_id': ObjectId(trip_id)})
-            
-            if trip:
-                destination = trip.get('destination', '')
-                quests = generate_sustainable_quests(destination)
-                
-                quest_idx = int(quest_index)
-                if 0 <= quest_idx < len(quests):
-                    quest = quests[quest_idx]
-                    quest['id'] = quest_id
-                    quest['trip_id'] = trip_id
-                    quest['location'] = destination
-                    return jsonify({'quest': quest}), 200
-        
-        return jsonify({'error': 'Quest not found'}), 404
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@quest_bp.route('/locations', methods=['GET'])
-def get_quest_locations():
-    """
-    Get quest locations for map display
-    
-    GET /quests/locations?destination=Delhi
-    
-    Query Parameters:
-    - destination: Filter by destination (optional)
-    """
-    try:
-        destination = request.args.get('destination', 'Delhi')
-        
-        # Sample quest locations with coordinates
-        quest_locations = [
-            {
-                'id': 'quest-1',
-                'title': 'Visit India Gate',
-                'description': 'Take a photo at the iconic India Gate monument',
-                'location': {
-                    'name': 'India Gate, Delhi',
-                    'lat': 28.6129,
-                    'lng': 77.2295
-                },
-                'category': 'heritage',
-                'points': 50,
-                'difficulty': 'easy',
-                'icon': '🏛️'
-            },
-            {
-                'id': 'quest-2',
-                'title': 'Red Fort Heritage Quest',
-                'description': 'Explore the Red Fort and learn about Mughal architecture',
-                'location': {
-                    'name': 'Red Fort, Delhi',
-                    'lat': 28.6562,
-                    'lng': 77.2410
-                },
-                'category': 'heritage',
-                'points': 75,
-                'difficulty': 'medium',
-                'icon': '🏰'
-            },
-            {
-                'id': 'quest-3',
-                'title': 'Lotus Temple Visit',
-                'description': 'Visit the Bahá\'í House of Worship and meditate',
-                'location': {
-                    'name': 'Lotus Temple, Delhi',
-                    'lat': 28.5535,
-                    'lng': 77.2588
-                },
-                'category': 'culture',
-                'points': 60,
-                'difficulty': 'easy',
-                'icon': '🏛️'
-            },
-            {
-                'id': 'quest-4',
-                'title': 'Qutub Minar Quest',
-                'description': 'Explore the tallest brick minaret in the world',
-                'location': {
-                    'name': 'Qutub Minar, Delhi',
-                    'lat': 28.5244,
-                    'lng': 77.1855
-                },
-                'category': 'heritage',
-                'points': 80,
-                'difficulty': 'medium',
-                'icon': '🗼'
-            },
-            {
-                'id': 'quest-5',
-                'title': 'Street Food Adventure',
-                'description': 'Try 3 different local street foods at Chandni Chowk',
-                'location': {
-                    'name': 'Chandni Chowk, Delhi',
-                    'lat': 28.6506,
-                    'lng': 77.2303
-                },
-                'category': 'food',
-                'points': 65,
-                'difficulty': 'easy',
-                'icon': '🍛'
-            }
-        ]
-        
         return jsonify({
             'success': True,
-            'destination': destination,
-            'quests': quest_locations,
-            'count': len(quest_locations)
+            'message': 'Quest started! 📸 Before image saved.',
+            'next_step': 'Complete quest after cleanup with AFTER image.',
+            'quest': {'id': quest_id, 'title': quest['title'], 'distance_m': round(distance, 2)}
         }), 200
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@quest_bp.route('/<quest_id>/complete', methods=['POST'])
+
+# =====================
+# STEP 2: Complete Quest
+# =====================
+
+@quest_bp.route('/complete/<quest_id>', methods=['POST'])
 @token_required
 def complete_quest(current_user, quest_id):
     """
-    Mark quest as completed
-    
-    POST /quests/<quest_id>/complete
+    Traveler completes quest:
+    - Upload AFTER image
+    - Verify proximity again
+    - Run AI cleanliness verification
+    - Award XP if verified
     """
+
     try:
-        from models import users_collection
-        
-        quest = next((q for q in SAMPLE_QUESTS if q['id'] == quest_id), None)
-        
+        quest = db.quests.find_one({"_id": ObjectId(quest_id)})
         if not quest:
             return jsonify({'error': 'Quest not found'}), 404
-        
-        user_id = current_user['user_id']
-        
-        # Update user's completed quests and points
-        users_collection.update_one(
-            {'_id': ObjectId(user_id)},
-            {
-                '$inc': {
-                    'completed_quests': 1,
-                    'points': quest['points']
-                },
-                '$push': {
-                    'quest_history': {
-                        'quest_id': quest_id,
-                        'quest_title': quest['title'],
-                        'points_earned': quest['points'],
-                        'completed_at': datetime.utcnow()
-                    }
-                }
-            }
+
+        submission = db.quest_submissions.find_one({
+            'quest_id': ObjectId(quest_id),
+            'user_id': ObjectId(current_user['_id']),
+            'status': 'in_progress'
+        })
+        if not submission:
+            return jsonify({'error': 'No active quest found. Start the quest first!'}), 400
+
+        user_lat = float(request.form.get('latitude'))
+        user_lng = float(request.form.get('longitude'))
+
+        # Check proximity again
+        quest_lng, quest_lat = quest['location']['coordinates']
+        distance = calculate_distance(user_lat, user_lng, quest_lat, quest_lng)
+        if distance > 100:
+            return jsonify({'error': 'Too far from quest location to complete', 'distance_m': round(distance, 2)}), 403
+
+        # Handle AFTER image
+        if 'after_image' not in request.files:
+            return jsonify({'error': 'After image is required'}), 400
+
+        after_file = request.files['after_image']
+        if not allowed_file(after_file.filename):
+            return jsonify({'error': 'Invalid file type'}), 400
+
+        filename = secure_filename(f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_after_{after_file.filename}")
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        after_file.save(filepath)
+
+        # Run AI verification
+        before_path = submission['before_image']
+        result = verify_cleanliness(before_path, filepath, (user_lat, user_lng), (quest_lat, quest_lng))
+
+        # Update submission
+        db.quest_submissions.update_one(
+            {'_id': submission['_id']},
+            {'$set': {
+                'after_image': filepath,
+                'verified': result.get('verified', False),
+                'confidence': result.get('confidence', 0),
+                'verified_at': datetime.utcnow(),
+                'status': 'verified' if result.get('verified') else 'failed'
+            }}
         )
-        
-        return jsonify({
-            'message': 'Quest completed successfully',
-            'points_earned': quest['points']
-        }), 200
-        
+
+        # Award XP if verified
+        if result.get('verified'):
+            db.users.update_one(
+                {'_id': ObjectId(current_user['_id'])},
+                {'$inc': {'xp': quest.get('points', 50)}}
+            )
+
+            return jsonify({
+                'success': True,
+                'message': f"✅ Quest verified successfully! +{quest.get('points', 50)} XP earned.",
+                'confidence': result.get('confidence'),
+                'quest': {'title': quest['title'], 'id': quest_id}
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'message': f"❌ Verification failed: {result.get('reason', 'Low improvement detected')}",
+                'confidence': result.get('confidence', 0)
+            }), 200
+
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+"""
+🌱 Fetch All AI Clean-Up Quests
+Returns all available quests for display in the frontend
+"""
+
+from flask import Blueprint, request, jsonify
+from bson import ObjectId
+from datetime import datetime
+from db import db
+
+quest_bp = Blueprint('quests', __name__, url_prefix='/api/quests')
+
+
+@quest_bp.route('/all', methods=['GET'])
+@quest_bp.route('/', methods=['GET'])
+def get_all_quests():
+    """
+    Fetch all active quests for display in the React frontend.
+    """
+    try:
+        # Fetch all quests (you can add filters here later)
+        quests = list(db.quests.find({}).sort("created_at", -1))
+        result = []
+
+        for q in quests:
+            result.append({
+                'id': str(q['_id']),
+                'name': q.get('title', 'Unnamed Quest'),
+                'description': q.get('description', 'Help improve the environment through this quest!'),
+                'location': q.get('location_name', 'Unknown Location'),
+                'points': q.get('points', 50),
+                'difficulty': q.get('difficulty', 'Easy'),
+                'category': q.get('category', 'environment'),
+                'requirements': q.get('requirements', [
+                    'Take before and after cleanup photos',
+                    'Dispose collected trash properly',
+                    'Submit proof through the app'
+                ]),
+            })
+
+        # If no quests in database, return demo quests
+        if len(result) == 0:
+            result = [
+                {
+                    'id': 'demo-1',
+                    'name': 'Clean Cups Outside CSE Lab 3',
+                    'description': 'Help keep our campus clean by collecting disposable cups scattered outside CSE Lab 3. Take before and after photos to verify your cleanup effort!',
+                    'location': 'CSE Lab 3, MSRIT',
+                    'points': 50,
+                    'difficulty': 'Easy',
+                    'category': 'environment',
+                    'requirements': [
+                        'Take a "before" photo showing cups/trash',
+                        'Collect all disposable cups and trash',
+                        'Take an "after" photo showing clean area',
+                        'Dispose trash in designated bins'
+                    ],
+                },
+                {
+                    'id': 'demo-2',
+                    'name': 'Clean Beach Quest',
+                    'description': 'Help clean up the beach and earn rewards!',
+                    'location': 'Malpe Beach, Udupi',
+                    'points': 100,
+                    'difficulty': 'Easy',
+                    'category': 'environment',
+                    'requirements': [
+                        'Take a photo of collected trash',
+                        'Upload proof of disposal'
+                    ],
+                },
+                {
+                    'id': 'demo-3',
+                    'name': 'Heritage Walk',
+                    'description': 'Explore historical monuments and learn about local culture.',
+                    'location': 'Mysore Palace',
+                    'points': 150,
+                    'difficulty': 'Medium',
+                    'category': 'culture',
+                    'requirements': [
+                        'Visit 3 monuments',
+                        'Take photos at each location'
+                    ],
+                },
+                {
+                    'id': 'demo-4',
+                    'name': 'Local Food Trail',
+                    'description': 'Discover authentic local cuisine from street vendors.',
+                    'location': 'VV Puram Food Street, Bangalore',
+                    'points': 75,
+                    'difficulty': 'Easy',
+                    'category': 'food',
+                    'requirements': [
+                        'Try 3 different foods',
+                        'Share reviews'
+                    ],
+                },
+            ]
+
+        return jsonify({
+            'success': True,
+            'count': len(result),
+            'quests': result
+        }), 200
+
+    except Exception as e:
+        print("⚠️ Error fetching quests:", e)
         return jsonify({'error': str(e)}), 500
