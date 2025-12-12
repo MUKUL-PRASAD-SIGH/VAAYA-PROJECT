@@ -18,7 +18,10 @@ export default function ProtectedRoute({ children }) {
         return <Navigate to="/login" state={{ from: location }} replace />
     }
 
-    if (!currentUser.emailVerified) {
+    // Allow access to role-selection even if not verified (for legacy support)
+    const isRoleSelection = location.pathname === '/role-selection'
+
+    if (!currentUser.emailVerified && !isRoleSelection) {
         return <Navigate to="/verify-email" replace />
     }
 

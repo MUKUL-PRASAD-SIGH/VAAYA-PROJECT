@@ -17,7 +17,7 @@ export default function VerifyEmail() {
     }
 
     if (currentUser.emailVerified) {
-        return <Navigate to="/dashboard" replace />
+        return <Navigate to="/onboarding" replace />
     }
 
     async function handleResendEmail() {
@@ -42,7 +42,7 @@ export default function VerifyEmail() {
         try {
             const user = await reloadUser()
             if (user.emailVerified) {
-                navigate('/dashboard', { replace: true })
+                navigate('/onboarding', { replace: true })
             } else {
                 setError('Email not verified yet. Please click the link in your email.')
             }

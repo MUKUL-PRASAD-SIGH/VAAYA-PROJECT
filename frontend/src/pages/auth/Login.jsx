@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { userApi } from '../../services/api'
 
 export default function Login() {
     const [email, setEmail] = useState('')
@@ -14,12 +15,17 @@ export default function Login() {
     const navigate = useNavigate()
     const location = useLocation()
 
-    // Get the page user was trying to access
-    const from = location.state?.from?.pathname || '/dashboard'
+    // Get redirect route based on user role
+    const getRedirectRoute = () => {
+        const userRole = localStorage.getItem('userRole')
+        return userRole === 'local' ? '/local-guide' : '/dashboard'
+    }
+    const from = location.state?.from?.pathname || getRedirectRoute()
 
-    // Redirect if already logged in
+    // Redirect if already logged in based on role
     if (currentUser) {
-        return <Navigate to="/dashboard" replace />
+        const redirectPath = getRedirectRoute()
+        return <Navigate to={redirectPath} replace />
     }
 
     async function handleSubmit(e) {
@@ -36,7 +42,37 @@ export default function Login() {
 
         try {
             await login(email, password)
-            navigate(from, { replace: true })
+
+            // Try to fetch user's role from backend (per-account persistence)
+            try {
+                const response = await userApi.getMe()
+                const userData = response.data?.user
+
+                if (userData && userData.preferences?.onboarding_completed) {
+                    // User has completed onboarding - use backend-stored role
+                    const backendRole = userData.role || userData.preference
+                    const isLocal = backendRole === 'local'
+                    localStorage.setItem('userRole', isLocal ? 'local' : 'tourist')
+                    localStorage.setItem('userPreferences', JSON.stringify({
+                        ...userData.preferences,
+                        onboardingCompleted: true
+                    }))
+                    navigate(isLocal ? '/local-guide' : '/dashboard', { replace: true })
+                    return
+                }
+            } catch (apiError) {
+                console.log('Backend user fetch failed, using localStorage fallback:', apiError)
+            }
+
+            // Fallback to localStorage check
+            const prefs = localStorage.getItem('userPreferences')
+            const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
+            if (onboardingCompleted) {
+                const userRole = localStorage.getItem('userRole')
+                navigate(userRole === 'local' ? '/local-guide' : '/dashboard', { replace: true })
+            } else {
+                navigate('/onboarding', { replace: true })
+            }
         } catch (err) {
             // Error is handled by AuthContext
             console.error('Login failed:', err)
@@ -52,7 +88,37 @@ export default function Login() {
 
         try {
             await loginWithGoogle()
-            navigate(from, { replace: true })
+
+            // Try to fetch user's role from backend (per-account persistence)
+            try {
+                const response = await userApi.getMe()
+                const userData = response.data?.user
+
+                if (userData && userData.preferences?.onboarding_completed) {
+                    // User has completed onboarding - use backend-stored role
+                    const backendRole = userData.role || userData.preference
+                    const isLocal = backendRole === 'local'
+                    localStorage.setItem('userRole', isLocal ? 'local' : 'tourist')
+                    localStorage.setItem('userPreferences', JSON.stringify({
+                        ...userData.preferences,
+                        onboardingCompleted: true
+                    }))
+                    navigate(isLocal ? '/local-guide' : '/dashboard', { replace: true })
+                    return
+                }
+            } catch (apiError) {
+                console.log('Backend user fetch failed, using localStorage fallback:', apiError)
+            }
+
+            // Fallback to localStorage check
+            const prefs = localStorage.getItem('userPreferences')
+            const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
+            if (onboardingCompleted) {
+                const userRole = localStorage.getItem('userRole')
+                navigate(userRole === 'local' ? '/local-guide' : '/dashboard', { replace: true })
+            } else {
+                navigate('/onboarding', { replace: true })
+            }
         } catch (err) {
             console.error('Google sign-in failed:', err)
         } finally {

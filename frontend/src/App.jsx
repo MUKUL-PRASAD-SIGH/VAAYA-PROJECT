@@ -11,6 +11,10 @@ import Heatmap from './pages/Heatmap'
 import Chat from './pages/Chat'
 import { Profile, Settings, Personalisation } from './pages/user'
 import { Login, Register, ForgotPassword, VerifyEmail } from './pages/auth'
+import RoleSelection from './pages/RoleSelection'
+import Onboarding from './pages/Onboarding'
+import LocalGuideDashboard from './pages/local-guide/LocalGuideDashboard'
+import ExperiencesMarketplace from './pages/Experiences'
 
 function AppContent() {
     const { themeColors, getThemeStyles } = useTheme()
@@ -24,6 +28,13 @@ function AppContent() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
+
+                {/* Onboarding - Protected but before dashboard */}
+                <Route path="/onboarding" element={
+                    <ProtectedRoute>
+                        <Onboarding />
+                    </ProtectedRoute>
+                } />
 
                 {/* Protected Routes */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -65,6 +76,25 @@ function AppContent() {
                 <Route path="/personalisation" element={
                     <ProtectedRoute>
                         <Personalisation />
+                    </ProtectedRoute>
+                } />
+                <Route path="/role-selection" element={
+                    <ProtectedRoute>
+                        <RoleSelection />
+                    </ProtectedRoute>
+                } />
+
+                {/* Local Guide Dashboard */}
+                <Route path="/local-guide" element={
+                    <ProtectedRoute>
+                        <LocalGuideDashboard />
+                    </ProtectedRoute>
+                } />
+
+                {/* Hospitality Layer - Traveler */}
+                <Route path="/experiences" element={
+                    <ProtectedRoute>
+                        <ExperiencesMarketplace />
                     </ProtectedRoute>
                 } />
             </Routes>

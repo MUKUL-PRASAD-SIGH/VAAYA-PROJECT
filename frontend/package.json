@@ -12,8 +12,10 @@
   "dependencies": {
     "axios": "^1.13.2",
     "firebase": "^12.6.0",
+    "framer-motion": "^12.23.26",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
+    "lucide-react": "^0.561.0",
     "plotly.js": "^3.3.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

@@ -80,3 +80,110 @@ def find_locals_nearby(latitude, longitude, max_distance_km=50):
             }
         }
     })
+
+# ===========================
+# Firebase Integration
+# ===========================
+
+def find_user_by_firebase_uid(firebase_uid):
+    """Find user by Firebase UID"""
+    return users_collection.find_one({'firebase_uid': firebase_uid})
+
+def create_user_from_firebase(firebase_uid, email, password=None, preference='user', name=None):
+    """
+    Create a new user from Firebase authentication
+    
+    Args:
+        firebase_uid: Firebase user UID
+        email: User email
+        password: Optional password (will be bcrypt hashed)
+        preference: 'local' or 'user' (traveller)
+        name: Display name
+    
+    Returns:
+        dict: Created user document
+    """
+    print(f"DEBUG: Creating Firebase user with uid: {firebase_uid}, email: {email}")
+    
+    # Check if user already exists
+    existing = find_user_by_firebase_uid(firebase_uid)
+    if existing:
+        print(f"DEBUG: User already exists with Firebase UID: {firebase_uid}")
+        return existing
+    
+    # Hash password if provided
+    password_hash = None
+    if password:
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    
+    # Map preference to role
+    role = 'local' if preference == 'local' else 'tourist'
+    
+    user = {
+        'firebase_uid': firebase_uid,
+        'email': email,
+        'password_hash': password_hash,
+        'role': role,
+        'preference': preference,  # 'local' or 'user'
+        'name': name,
+        'verified': True,  # Firebase already verified
+        'created_at': datetime.utcnow(),
+        'fcm_token': None,
+        'profile_image': None,
+        'bio': None,
+        'rating': 0.0,
+        'completed_quests': 0,
+        'points': 0,
+        'location': None,
+        'preferences': {},  # Onboarding preferences
+        'ai_messages': []   # AI chat history (up to 20)
+    }
+    
+    result = users_collection.insert_one(user)
+    user['_id'] = result.inserted_id
+    print(f"DEBUG: Firebase user created with ID: {user['_id']}")
+    return user
+
+def update_user_by_firebase_uid(firebase_uid, updates):
+    """Update user by Firebase UID"""
+    return users_collection.update_one(
+        {'firebase_uid': firebase_uid},
+        {'$set': updates}
+    )
+
+def add_ai_message(firebase_uid, role, text):
+    """
+    Add an AI chat message to user's history (max 20 messages)
+    
+    Args:
+        firebase_uid: Firebase user UID
+        role: 'user' or 'assistant'
+        text: Message text
+    """
+    message = {
+        'role': role,
+        'text': text,
+        'timestamp': datetime.utcnow()
+    }
+    
+    # Push message and keep only last 20
+    users_collection.update_one(
+        {'firebase_uid': firebase_uid},
+        {
+            '$push': {
+                'ai_messages': {
+                    '$each': [message],
+                    '$slice': -20  # Keep only last 20 messages
+                }
+            }
+        }
+    )
+    return message
+
+def get_user_ai_messages(firebase_uid, limit=20):
+    """Get user's AI chat messages"""
+    user = find_user_by_firebase_uid(firebase_uid)
+    if user:
+        messages = user.get('ai_messages', [])
+        return messages[-limit:] if len(messages) > limit else messages
+    return []

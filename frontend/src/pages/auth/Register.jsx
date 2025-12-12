@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { userApi } from '../../services/api'
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -24,7 +25,10 @@ export default function Register() {
         if (!currentUser.emailVerified) {
             return <Navigate to="/verify-email" replace />
         }
-        return <Navigate to="/dashboard" replace />
+        // Redirect based on role
+        const userRole = localStorage.getItem('userRole')
+        const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
+        return <Navigate to={redirectPath} replace />
     }
 
     function handleChange(e) {
@@ -57,6 +61,8 @@ export default function Register() {
 
         try {
             await signup(formData.email, formData.password, formData.name)
+            // Save role to localStorage for post-verification redirect
+            localStorage.setItem('userRole', formData.role)
             await sendVerificationEmail()
             navigate('/verify-email', { replace: true })
         } catch (err) {
@@ -73,7 +79,37 @@ export default function Register() {
 
         try {
             await loginWithGoogle()
-            navigate('/dashboard', { replace: true })
+
+            // Try to fetch user's role from backend (per-account persistence)
+            try {
+                const response = await userApi.getMe()
+                const userData = response.data?.user
+
+                if (userData && userData.preferences?.onboarding_completed) {
+                    // User has completed onboarding - use backend-stored role
+                    const backendRole = userData.role || userData.preference
+                    const isLocal = backendRole === 'local'
+                    localStorage.setItem('userRole', isLocal ? 'local' : 'tourist')
+                    localStorage.setItem('userPreferences', JSON.stringify({
+                        ...userData.preferences,
+                        onboardingCompleted: true
+                    }))
+                    navigate(isLocal ? '/local-guide' : '/dashboard', { replace: true })
+                    return
+                }
+            } catch (apiError) {
+                console.log('Backend user fetch failed, using localStorage fallback:', apiError)
+            }
+
+            // Fallback to localStorage check
+            const prefs = localStorage.getItem('userPreferences')
+            const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
+            if (onboardingCompleted) {
+                const userRole = localStorage.getItem('userRole')
+                navigate(userRole === 'local' ? '/local-guide' : '/dashboard', { replace: true })
+            } else {
+                navigate('/onboarding', { replace: true })
+            }
         } catch (err) {
             console.error('Google sign-in failed:', err)
         } finally {
@@ -192,65 +228,6 @@ export default function Register() {
                                 }}
                                 disabled={isLoading}
                             />
-                        </div>
-
-                        {/* Role Selection */}
-                        <div>
-                            <label className="block text-sm font-medium mb-3" style={{ color: themeColors.textSecondary }}>
-                                I am a
-                            </label>
-                            <div className="flex gap-4">
-                                <label className="flex-1 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="role"
-                                        value="tourist"
-                                        checked={formData.role === 'tourist'}
-                                        onChange={handleChange}
-                                        className="sr-only"
-                                    />
-                                    <div
-                                        className="p-4 rounded-lg text-center transition-all duration-200"
-                                        style={{
-                                            background: formData.role === 'tourist'
-                                                ? `linear-gradient(135deg, ${themeColors.accent}20, ${themeColors.accent}10)`
-                                                : themeColors.background,
-                                            border: formData.role === 'tourist'
-                                                ? `2px solid ${themeColors.accent}`
-                                                : `1px solid ${themeColors.border}`,
-                                            color: formData.role === 'tourist' ? themeColors.accent : themeColors.text
-                                        }}
-                                    >
-                                        <span className="text-2xl block mb-1">🌍</span>
-                                        <span className="font-medium">Tourist</span>
-                                    </div>
-                                </label>
-                                <label className="flex-1 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="role"
-                                        value="local"
-                                        checked={formData.role === 'local'}
-                                        onChange={handleChange}
-                                        className="sr-only"
-                                    />
-                                    <div
-                                        className="p-4 rounded-lg text-center transition-all duration-200"
-                                        style={{
-                                            background: formData.role === 'local'
-                                                ? `linear-gradient(135deg, ${themeColors.accent}20, ${themeColors.accent}10)`
-                                                : themeColors.background,
-                                            border: formData.role === 'local'
-                                                ? `2px solid ${themeColors.accent}`
-                                                : `1px solid ${themeColors.border}`,
-                                            color: formData.role === 'local' ? themeColors.accent : themeColors.text
-                                        }}
-                                    >
-                                        <span className="text-2xl block mb-1">🏠</span>
-                                        <span className="font-medium">Local Guide</span>
-                                    </div>
-                                </label>
-                            </div>
                         </div>
 
                         <button
