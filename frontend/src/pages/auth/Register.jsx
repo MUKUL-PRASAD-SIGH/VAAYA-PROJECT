@@ -73,7 +73,10 @@ export default function Register() {
 
         try {
             await loginWithGoogle()
-            navigate('/dashboard', { replace: true })
+            // Check if onboarding was completed (returning user via Google)
+            const prefs = localStorage.getItem('userPreferences')
+            const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
+            navigate(onboardingCompleted ? '/dashboard' : '/onboarding', { replace: true })
         } catch (err) {
             console.error('Google sign-in failed:', err)
         } finally {
@@ -192,65 +195,6 @@ export default function Register() {
                                 }}
                                 disabled={isLoading}
                             />
-                        </div>
-
-                        {/* Role Selection */}
-                        <div>
-                            <label className="block text-sm font-medium mb-3" style={{ color: themeColors.textSecondary }}>
-                                I am a
-                            </label>
-                            <div className="flex gap-4">
-                                <label className="flex-1 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="role"
-                                        value="tourist"
-                                        checked={formData.role === 'tourist'}
-                                        onChange={handleChange}
-                                        className="sr-only"
-                                    />
-                                    <div
-                                        className="p-4 rounded-lg text-center transition-all duration-200"
-                                        style={{
-                                            background: formData.role === 'tourist'
-                                                ? `linear-gradient(135deg, ${themeColors.accent}20, ${themeColors.accent}10)`
-                                                : themeColors.background,
-                                            border: formData.role === 'tourist'
-                                                ? `2px solid ${themeColors.accent}`
-                                                : `1px solid ${themeColors.border}`,
-                                            color: formData.role === 'tourist' ? themeColors.accent : themeColors.text
-                                        }}
-                                    >
-                                        <span className="text-2xl block mb-1">🌍</span>
-                                        <span className="font-medium">Tourist</span>
-                                    </div>
-                                </label>
-                                <label className="flex-1 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="role"
-                                        value="local"
-                                        checked={formData.role === 'local'}
-                                        onChange={handleChange}
-                                        className="sr-only"
-                                    />
-                                    <div
-                                        className="p-4 rounded-lg text-center transition-all duration-200"
-                                        style={{
-                                            background: formData.role === 'local'
-                                                ? `linear-gradient(135deg, ${themeColors.accent}20, ${themeColors.accent}10)`
-                                                : themeColors.background,
-                                            border: formData.role === 'local'
-                                                ? `2px solid ${themeColors.accent}`
-                                                : `1px solid ${themeColors.border}`,
-                                            color: formData.role === 'local' ? themeColors.accent : themeColors.text
-                                        }}
-                                    >
-                                        <span className="text-2xl block mb-1">🏠</span>
-                                        <span className="font-medium">Local Guide</span>
-                                    </div>
-                                </label>
-                            </div>
                         </div>
 
                         <button

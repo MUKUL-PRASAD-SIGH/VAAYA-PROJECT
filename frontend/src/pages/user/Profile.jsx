@@ -3,6 +3,57 @@ import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { userApi } from '../../services/api'
 
+// Preferences Card Component
+function PreferencesCard({ themeColors, containerStyle }) {
+    const [prefs, setPrefs] = useState(null)
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        async function fetchPreferences() {
+            try {
+                // Try API first
+                const response = await userApi.getPreferences()
+                if (response.data?.preferences) {
+                    setPrefs(response.data.preferences)
+                }
+            } catch (error) {
+                // Fallback to localStorage
+                const localPrefs = localStorage.getItem('userPreferences')
+                if (localPrefs) {
+                    setPrefs(JSON.parse(localPrefs))
+                }
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchPreferences()
+    }, [])
+
+    if (loading) return null
+    if (!prefs) return null
+
+    return (
+        <div className="mt-8 rounded-lg shadow-lg p-6 border" style={containerStyle}>
+            <h3 className="text-xl font-bold mb-6">Your Preferences</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center p-4 rounded-lg" style={{ backgroundColor: themeColors.primary + '20' }}>
+                    <p className="text-sm opacity-70 mb-1">Role</p>
+                    <p className="text-lg font-bold" style={{ color: themeColors.primary }}>{prefs.role || 'Not set'}</p>
+                </div>
+                <div className="text-center p-4 rounded-lg" style={{ backgroundColor: themeColors.primary + '20' }}>
+                    <p className="text-sm opacity-70 mb-1">Budget</p>
+                    <p className="text-lg font-bold" style={{ color: themeColors.primary }}>{prefs.budget || 'Not set'}</p>
+                </div>
+                <div className="text-center p-4 rounded-lg" style={{ backgroundColor: themeColors.primary + '20' }}>
+                    <p className="text-sm opacity-70 mb-1">Interests</p>
+                    <p className="text-sm font-medium" style={{ color: themeColors.primary }}>
+                        {prefs.interests?.length > 0 ? prefs.interests.join(', ') : 'Not set'}
+                    </p>
+                </div>
+            </div>
+        </div>
+    )
+}
 export default function Profile() {
     const { getThemeStyles, themeColors, isDarkMode } = useTheme()
     const { currentUser, setupRecaptcha, linkPhone, reloadUser } = useAuth()
@@ -286,69 +337,72 @@ export default function Profile() {
                         </div>
                     )}
                 </div>
-            </div>
 
-            {/* Phone Verification Modal */}
-            {showPhoneModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="w-full max-w-md p-6 rounded-lg shadow-2xl relative" style={getThemeStyles.card}>
-                        <button
-                            onClick={() => setShowPhoneModal(false)}
-                            className="absolute top-4 right-4 hover:opacity-70"
-                        >
-                            ✕
-                        </button>
+                {/* User Preferences Section */}
+                <PreferencesCard themeColors={themeColors} containerStyle={containerStyle} />
 
-                        <h3 className="text-xl font-bold mb-4">Verify Phone Number</h3>
+                {/* Phone Verification Modal */}
+                {showPhoneModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                        <div className="w-full max-w-md p-6 rounded-lg shadow-2xl relative" style={getThemeStyles.card}>
+                            <button
+                                onClick={() => setShowPhoneModal(false)}
+                                className="absolute top-4 right-4 hover:opacity-70"
+                            >
+                                ✕
+                            </button>
 
-                        {phoneStep === 'input' ? (
-                            <div className="space-y-4">
-                                <p className="text-sm opacity-80">Enter your phone number (keep +91 for India)</p>
-                                <input
-                                    type="tel"
-                                    value={newPhone}
-                                    onChange={(e) => setNewPhone(e.target.value)}
-                                    placeholder="+91 98765 43210"
-                                    className="w-full px-4 py-2 rounded-lg border"
-                                    style={getThemeStyles.input}
-                                />
-                                <button
-                                    onClick={handleSendOtp}
-                                    className="w-full py-2 rounded-lg font-bold text-white transition hover:opacity-90"
-                                    style={{ backgroundColor: themeColors.primary }}
-                                >
-                                    Send Code
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <p className="text-sm opacity-80">Enter the 6-digit code sent to {newPhone}</p>
-                                <input
-                                    type="text"
-                                    value={otp}
-                                    onChange={(e) => setOtp(e.target.value)}
-                                    placeholder="123456"
-                                    className="w-full px-4 py-2 rounded-lg border tracking-widest text-center text-xl"
-                                    style={getThemeStyles.input}
-                                />
-                                <button
-                                    onClick={handleVerifyOtp}
-                                    className="w-full py-2 rounded-lg font-bold text-white transition hover:opacity-90"
-                                    style={{ backgroundColor: themeColors.green || '#10B981' }}
-                                >
-                                    Verify Code
-                                </button>
-                                <button
-                                    onClick={() => setPhoneStep('input')}
-                                    className="w-full text-sm hover:underline opacity-70"
-                                >
-                                    Change Phone Number
-                                </button>
-                            </div>
-                        )}
+                            <h3 className="text-xl font-bold mb-4">Verify Phone Number</h3>
+
+                            {phoneStep === 'input' ? (
+                                <div className="space-y-4">
+                                    <p className="text-sm opacity-80">Enter your phone number (keep +91 for India)</p>
+                                    <input
+                                        type="tel"
+                                        value={newPhone}
+                                        onChange={(e) => setNewPhone(e.target.value)}
+                                        placeholder="+91 98765 43210"
+                                        className="w-full px-4 py-2 rounded-lg border"
+                                        style={getThemeStyles.input}
+                                    />
+                                    <button
+                                        onClick={handleSendOtp}
+                                        className="w-full py-2 rounded-lg font-bold text-white transition hover:opacity-90"
+                                        style={{ backgroundColor: themeColors.primary }}
+                                    >
+                                        Send Code
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <p className="text-sm opacity-80">Enter the 6-digit code sent to {newPhone}</p>
+                                    <input
+                                        type="text"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                        placeholder="123456"
+                                        className="w-full px-4 py-2 rounded-lg border tracking-widest text-center text-xl"
+                                        style={getThemeStyles.input}
+                                    />
+                                    <button
+                                        onClick={handleVerifyOtp}
+                                        className="w-full py-2 rounded-lg font-bold text-white transition hover:opacity-90"
+                                        style={{ backgroundColor: themeColors.green || '#10B981' }}
+                                    >
+                                        Verify Code
+                                    </button>
+                                    <button
+                                        onClick={() => setPhoneStep('input')}
+                                        className="w-full text-sm hover:underline opacity-70"
+                                    >
+                                        Change Phone Number
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     )
 }

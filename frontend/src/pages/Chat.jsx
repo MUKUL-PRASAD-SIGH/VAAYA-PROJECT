@@ -2,24 +2,43 @@ import { useState, useRef, useEffect } from 'react'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import { aiApi } from '../services/api'
 
+const CHAT_STORAGE_KEY = 'vaaya_ai_chat_history'
+const MAX_STORED_MESSAGES = 20
+
+// Save messages to localStorage
+const saveMessagesToStorage = (messages) => {
+    const toStore = messages.slice(-MAX_STORED_MESSAGES)
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(toStore))
+}
+
+// Load messages from localStorage
+const loadMessagesFromStorage = () => {
+    try {
+        const stored = localStorage.getItem(CHAT_STORAGE_KEY)
+        return stored ? JSON.parse(stored) : []
+    } catch {
+        return []
+    }
+}
+
 // Message Component
 function Message({ message, isOwn }) {
     return (
-        <div className={`flex items-start space-x-3 ${isOwn ? 'flex-row-reverse space-x-reverse' : ''}`}>
+        <div className={`flex items - start space - x - 3 ${isOwn ? 'flex-row-reverse space-x-reverse' : ''} `}>
             <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${message.isAI
-                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
-                    : 'bg-gray-200 text-gray-600'
-                    }`}
+                className={`w - 8 h - 8 rounded - full flex items - center justify - center text - sm flex - shrink - 0 ${message.isAI
+                        ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+                        : 'bg-gray-200 text-gray-600'
+                    } `}
             >
                 {message.isAI ? 'AI' : 'U'}
             </div>
             <div className="flex-1">
                 <div
-                    className={`inline-block max-w-lg p-4 ${isOwn
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl rounded-br-sm'
-                        : 'bg-gray-100 text-gray-800 rounded-2xl rounded-bl-sm'
-                        }`}
+                    className={`inline - block max - w - lg p - 4 ${isOwn
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl rounded-br-sm'
+                            : 'bg-gray-100 text-gray-800 rounded-2xl rounded-bl-sm'
+                        } `}
                 >
                     <p className="text-sm whitespace-pre-line">{message.text}</p>
                 </div>
@@ -33,7 +52,7 @@ function Message({ message, isOwn }) {
 function ConversationItem({ conversation, isActive, onClick }) {
     return (
         <div
-            className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${isActive ? 'bg-purple-50' : ''}`}
+            className={`p - 4 border - b hover: bg - gray - 50 cursor - pointer ${isActive ? 'bg-purple-50' : ''} `}
             onClick={onClick}
         >
             <div className="flex items-center space-x-3">
@@ -51,15 +70,7 @@ function ConversationItem({ conversation, isActive, onClick }) {
 
 export default function Chat() {
     const [activeChat, setActiveChat] = useState('ai')
-    const [messages, setMessages] = useState([
-        {
-            id: 1,
-            text: "Hi! I'm your AI travel assistant. Ask me about:\n• Best places to visit\n• Local recommendations\n• Crowd predictions\n• Travel tips and guides",
-            sender: 'AI',
-            isAI: true,
-            time: 'Just now',
-        },
-    ])
+    const [messages, setMessages] = useState([])
     const [inputValue, setInputValue] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [showFindUsers, setShowFindUsers] = useState(false)
@@ -75,9 +86,37 @@ export default function Chat() {
         "How crowded is Jaipur today?",
     ]
 
+    // Load chat history from localStorage on mount
+    useEffect(() => {
+        const storedMessages = loadMessagesFromStorage()
+        if (storedMessages.length > 0) {
+            setMessages(storedMessages)
+        } else {
+            // Show welcome message if no history
+            const welcomeMsg = {
+                id: 1,
+                text: "Hi! I'm your AI travel assistant. Ask me about:\n• Best places to visit\n• Local recommendations\n• Crowd predictions\n• Travel tips and guides",
+                sender: 'AI',
+                isAI: true,
+                time: 'Just now',
+            }
+            setMessages([welcomeMsg])
+            saveMessagesToStorage([welcomeMsg])
+        }
+    }, [])
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages])
+
+    // Build context from last 10 messages for AI
+    const buildChatContext = () => {
+        const lastMessages = messages.slice(-10)
+        return lastMessages.map(msg => ({
+            role: msg.isAI ? 'assistant' : 'user',
+            content: msg.text
+        }))
+    }
 
     const handleSend = async (text = inputValue) => {
         if (!text.trim()) return
@@ -90,35 +129,46 @@ export default function Chat() {
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         }
 
-        setMessages((prev) => [...prev, userMessage])
+        const newMessages = [...messages, userMessage]
+        setMessages(newMessages)
+        saveMessagesToStorage(newMessages)
         setInputValue('')
         setIsLoading(true)
 
         try {
-            const response = await aiApi.chat(text, {})
+            // Send message with context of last 10 messages
+            const chatContext = buildChatContext()
+            const response = await aiApi.chat(text, { history: chatContext })
+
+            const aiResponseText = response.data.message || response.data.response || "I'm here to help with your travel queries!"
 
             const aiResponse = {
                 id: Date.now() + 1,
-                text: response.data.message || response.data.response || "I'm here to help with your travel queries!",
+                text: aiResponseText,
                 sender: 'AI',
                 isAI: true,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             }
 
-            setMessages((prev) => [...prev, aiResponse])
+            const updatedMessages = [...newMessages, aiResponse]
+            setMessages(updatedMessages)
+            saveMessagesToStorage(updatedMessages)
         } catch (error) {
             console.error('Chat error:', error)
 
-            // Demo response on error
+            const fallbackText = `Great question!\n\nBased on AI analysis: \n\n - Best visiting hours: 6 - 8 AM\n - Current crowd level: Low\n - Weather: Favorable\n\nWould you like me to check the heatmap ? `
+
             const aiResponse = {
                 id: Date.now() + 1,
-                text: `Great question!\n\nBased on AI analysis:\n\n- Best visiting hours: 6-8 AM\n- Current crowd level: Low\n- Weather: Favorable\n\nWould you like me to check the heatmap?`,
+                text: fallbackText,
                 sender: 'AI',
                 isAI: true,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             }
 
-            setMessages((prev) => [...prev, aiResponse])
+            const updatedMessages = [...newMessages, aiResponse]
+            setMessages(updatedMessages)
+            saveMessagesToStorage(updatedMessages)
         } finally {
             setIsLoading(false)
         }

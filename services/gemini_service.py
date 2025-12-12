@@ -108,15 +108,42 @@ Style: Friendly, concise (<200 words), use emoji occasionally 🏛️☕"""
 def chatbot_response(user_message, context=None):
     """
     Tourism chatbot - tries Groq first, then Gemini as fallback
+    Includes conversation history and user trips as context
     """
+    # Build context string for the AI
+    context_parts = []
+    
+    if context:
+        # Add conversation history
+        if context.get('conversation_history'):
+            context_parts.append(f"Previous conversation:\n{context['conversation_history']}")
+        
+        # Add user's saved trips
+        if context.get('user_trips'):
+            context_parts.append(context['user_trips'])
+        
+        # Add current location/destination
+        if context.get('location'):
+            context_parts.append(f"📍 User's current destination: {context['location']}")
+        
+        # Add trip plan details
+        if context.get('trip_plan'):
+            plan = context['trip_plan']
+            context_parts.append(f"Trip details: {plan.get('destination')} from {plan.get('start_date')} to {plan.get('end_date')}")
+    
+    context_str = "\n\n".join(context_parts) if context_parts else ""
+    
     # Try Groq first
     groq = _get_groq_client()
     if groq:
         try:
             print(f"Attempting Groq chat with model: {GROQ_MODEL}")
             messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-            if context and context.get('location'):
-                messages.append({"role": "system", "content": f"📍 User's destination: {context['location']}"})
+            
+            # Add context as a system message
+            if context_str:
+                messages.append({"role": "system", "content": f"Context for this conversation:\n{context_str}"})
+            
             messages.append({"role": "user", "content": user_message})
             
             response = groq.chat.completions.create(
@@ -129,7 +156,7 @@ def chatbot_response(user_message, context=None):
             return {
                 'success': True,
                 'message': response.choices[0].message.content,
-                'context_used': bool(context),
+                'context_used': bool(context_str),
                 'model': f'groq/{GROQ_MODEL}'
             }
         except Exception as e:
@@ -140,12 +167,16 @@ def chatbot_response(user_message, context=None):
     if gemini:
         try:
             print(f"Attempting Gemini chat fallback with model: {GEMINI_MODEL}")
-            prompt = f"{SYSTEM_PROMPT}\n\nUser: {user_message}"
+            prompt = f"{SYSTEM_PROMPT}\n\n"
+            if context_str:
+                prompt += f"Context:\n{context_str}\n\n"
+            prompt += f"User: {user_message}"
+            
             response = gemini.generate_content(prompt)
             return {
                 'success': True,
                 'message': response.text,
-                'context_used': bool(context),
+                'context_used': bool(context_str),
                 'model': f'gemini/{GEMINI_MODEL}'
             }
         except Exception as e:

@@ -12,6 +12,7 @@ import Chat from './pages/Chat'
 import { Profile, Settings, Personalisation } from './pages/user'
 import { Login, Register, ForgotPassword, VerifyEmail } from './pages/auth'
 import RoleSelection from './pages/RoleSelection'
+import Onboarding from './pages/Onboarding'
 
 function AppContent() {
     const { themeColors, getThemeStyles } = useTheme()
@@ -71,6 +72,11 @@ function AppContent() {
                 <Route path="/role-selection" element={
                     <ProtectedRoute>
                         <RoleSelection />
+                    </ProtectedRoute>
+                } />
+                <Route path="/onboarding" element={
+                    <ProtectedRoute>
+                        <Onboarding />
                     </ProtectedRoute>
                 } />
             </Routes>
