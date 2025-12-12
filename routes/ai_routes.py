@@ -212,12 +212,13 @@ def verify_quest():
 @ai_bp.route('/chat', methods=['POST'])
 def chat():
     """
-    Tourism chatbot endpoint
+    Tourism chatbot endpoint with conversation context
     
     POST /ai/chat
     Body: {
         "message": "What are the best places to visit in Paris?",
-        "trip_id": "optional_trip_id",  // Include trip context
+        "history": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}],
+        "trip_id": "optional_trip_id",  // Include specific trip context
         "include_stories": true  // Include local stories from DB
     }
     """
@@ -231,13 +232,39 @@ def chat():
         user_message = data['message']
         trip_id = data.get('trip_id')
         include_stories = data.get('include_stories', False)
+        chat_history = data.get('history', [])  # Get conversation history from frontend
         
         # Build context
         context = {
             'user_preferences': {}
         }
         
-        # Add trip context if trip_id provided
+        # Add conversation history as context (last 10 messages)
+        if chat_history and len(chat_history) > 0:
+            history_text = []
+            for msg in chat_history[-10:]:  # Last 10 messages
+                role = msg.get('role', 'user')
+                content = msg.get('content', '')
+                history_text.append(f"{role.upper()}: {content}")
+            context['conversation_history'] = '\n'.join(history_text)
+        
+        # Fetch user's saved trips from database to provide context
+        try:
+            from models.trip import get_trips_by_user_id
+            user_trips = get_trips_by_user_id(current_user['user_id'])
+            if user_trips:
+                trips_context = []
+                for trip in user_trips[:5]:  # Last 5 trips
+                    trip_info = f"- {trip.get('destination', 'Unknown')}"
+                    if trip.get('start_date'):
+                        trip_info += f" ({trip.get('start_date')})"
+                    trips_context.append(trip_info)
+                if trips_context:
+                    context['user_trips'] = "User's planned trips:\n" + '\n'.join(trips_context)
+        except Exception as e:
+            print(f"Could not fetch user trips: {e}")
+        
+        # Add specific trip context if trip_id provided
         if trip_id:
             trip = get_trip_by_id(trip_id)
             if trip and str(trip.get('user_id')) == current_user['user_id']:

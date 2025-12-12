@@ -41,10 +41,10 @@ export default function Login() {
 
         try {
             await login(email, password)
-            // Navigate based on user role
-            const userRole = localStorage.getItem('userRole')
-            const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
-            navigate(redirectPath, { replace: true })
+            // Check if onboarding was completed
+            const prefs = localStorage.getItem('userPreferences')
+            const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
+            navigate(onboardingCompleted ? '/dashboard' : '/onboarding', { replace: true })
         } catch (err) {
             // Error is handled by AuthContext
             console.error('Login failed:', err)
@@ -60,10 +60,10 @@ export default function Login() {
 
         try {
             await loginWithGoogle()
-            // Navigate based on user role
-            const userRole = localStorage.getItem('userRole')
-            const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
-            navigate(redirectPath, { replace: true })
+            // Check if onboarding was completed
+            const prefs = localStorage.getItem('userPreferences')
+            const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
+            navigate(onboardingCompleted ? '/dashboard' : '/onboarding', { replace: true })
         } catch (err) {
             console.error('Google sign-in failed:', err)
         } finally {
