@@ -11,6 +11,7 @@ import Heatmap from './pages/Heatmap'
 import Chat from './pages/Chat'
 import { Profile, Settings, Personalisation } from './pages/user'
 import { Login, Register, ForgotPassword, VerifyEmail } from './pages/auth'
+import RoleSelection from './pages/RoleSelection'
 
 function AppContent() {
     const { themeColors, getThemeStyles } = useTheme()
@@ -65,6 +66,11 @@ function AppContent() {
                 <Route path="/personalisation" element={
                     <ProtectedRoute>
                         <Personalisation />
+                    </ProtectedRoute>
+                } />
+                <Route path="/role-selection" element={
+                    <ProtectedRoute>
+                        <RoleSelection />
                     </ProtectedRoute>
                 } />
             </Routes>

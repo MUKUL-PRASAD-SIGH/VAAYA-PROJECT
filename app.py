@@ -41,6 +41,17 @@ app.register_blueprint(chat_bp, url_prefix='/api/chat')
 @app.route('/')
 def serve_index():
     """Serve the React app"""
+    if not os.path.exists(os.path.join(app.static_folder, 'index.html')):
+        return """
+        <div style="font-family: sans-serif; text-align: center; padding: 50px;">
+            <h1>Vaaya API Server Running</h1>
+            <p>The backend is running successfully.</p>
+            <p>To view the application, please visit the frontend development server:</p>
+            <a href="http://localhost:5173" style="font-size: 1.2em; color: #0066cc;">http://localhost:5173</a>
+            <br><br>
+            <small>Note: This message appears because the frontend static files (frontend/dist/index.html) were not found.</small>
+        </div>
+        """
     return app.send_static_file('index.html')
 
 @app.errorhandler(404)
