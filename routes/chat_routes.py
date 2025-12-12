@@ -131,3 +131,100 @@ def send_message(current_user):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# ===========================
+# Community Chat - User to User
+# ===========================
+
+@chat_bp.route('/travelers/nearby', methods=['GET'])
+@token_required
+def get_nearby_travelers(current_user):
+    """
+    Get nearby travelers for community connections
+    
+    GET /chat/travelers/nearby
+    Query: lat, lng (optional - uses user's location)
+    """
+    try:
+        # Sample nearby travelers
+        travelers = [
+            {
+                '_id': 'n1',
+                'name': 'Alex Thompson',
+                'location': 'Nearby',
+                'distance': '0.5 km',
+                'badge': 'FELLOW_TRAVELER',
+                'role': 'traveler'
+            },
+            {
+                '_id': 'n2',
+                'name': 'Lisa Park',
+                'location': 'Nearby',
+                'distance': '1.2 km',
+                'badge': 'CULTURAL_GUEST',
+                'role': 'traveler'
+            },
+            {
+                '_id': 'n3',
+                'name': 'James Wilson',
+                'location': 'Nearby',
+                'distance': '2 km',
+                'badge': 'FELLOW_TRAVELER',
+                'role': 'traveler'
+            }
+        ]
+        
+        return jsonify({
+            'travelers': travelers,
+            'count': len(travelers)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@chat_bp.route('/conversations', methods=['POST'])
+@token_required
+def create_conversation(current_user):
+    """
+    Start a new conversation with another user
+    
+    POST /chat/conversations
+    Body: { "user_id": "<target_user_id>" }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'user_id' not in data:
+            return jsonify({'error': 'user_id is required'}), 400
+        
+        target_user_id = data['user_id']
+        
+        # In production, create conversation in database
+        # For now, return mock conversation
+        conversation = {
+            '_id': f'conv_{target_user_id}',
+            'participant': {
+                '_id': target_user_id,
+                'name': 'New Connection',
+                'role': 'traveler',
+                'location': 'Nearby'
+            },
+            'lastMessage': {
+                'text': 'Say hello!',
+                'timestamp': datetime.utcnow().isoformat(),
+                'read': True
+            },
+            'unreadCount': 0,
+            'created_at': datetime.utcnow().isoformat()
+        }
+        
+        return jsonify({
+            'message': 'Conversation created',
+            'conversation': conversation
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+

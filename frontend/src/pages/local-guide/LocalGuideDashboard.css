@@ -207,6 +207,7 @@
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -311,6 +312,128 @@
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
     border-color: rgba(102, 126, 234, 0.3);
     transform: translateY(-4px);
+}
+
+/* Action Icon Wrapper */
+.action-icon-wrapper {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(102, 126, 234, 0.15);
+    border-radius: 14px;
+    color: #667eea;
+}
+
+/* Hot Badge for New Post */
+.hot-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 1rem;
+}
+
+/* Unread Count Badge */
+.unread-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 20px;
+    height: 20px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
+
+/* Pulse Animation for Create Quest */
+.action-icon-wrapper.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 15px rgba(102, 126, 234, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+}
+
+/* Bounce Animation for New Post (Hot) */
+.action-icon-wrapper.bounce {
+    animation: bounce 1s infinite;
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(239, 68, 68, 0.2));
+    color: #fb923c;
+}
+
+@keyframes bounce {
+
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-8px);
+    }
+
+    60% {
+        transform: translateY(-4px);
+    }
+}
+
+/* Shake Animation for Messages */
+.action-icon-wrapper.shake {
+    animation: shake 2.5s infinite;
+    background: rgba(34, 211, 238, 0.15);
+    color: #22d3ee;
+}
+
+@keyframes shake {
+
+    0%,
+    92%,
+    100% {
+        transform: rotate(0);
+    }
+
+    93%,
+    97% {
+        transform: rotate(-5deg);
+    }
+
+    95%,
+    99% {
+        transform: rotate(5deg);
+    }
+}
+
+/* Hot card special styling */
+.action-card.hot {
+    border-color: rgba(251, 146, 60, 0.3);
+    background: rgba(251, 146, 60, 0.05);
+}
+
+.action-card.hot:hover {
+    background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%);
+    border-color: rgba(251, 146, 60, 0.5);
+    box-shadow: 0 8px 32px rgba(251, 146, 60, 0.3);
 }
 
 .action-icon {

@@ -12,6 +12,8 @@ import Chat from './pages/Chat'
 import { Profile, Settings, Personalisation } from './pages/user'
 import { Login, Register, ForgotPassword, VerifyEmail } from './pages/auth'
 import RoleSelection from './pages/RoleSelection'
+import LocalGuideDashboard from './pages/local-guide/LocalGuideDashboard'
+import ExperiencesMarketplace from './pages/Experiences'
 
 function AppContent() {
     const { themeColors, getThemeStyles } = useTheme()
@@ -71,6 +73,20 @@ function AppContent() {
                 <Route path="/role-selection" element={
                     <ProtectedRoute>
                         <RoleSelection />
+                    </ProtectedRoute>
+                } />
+
+                {/* Local Guide Dashboard */}
+                <Route path="/local-guide" element={
+                    <ProtectedRoute>
+                        <LocalGuideDashboard />
+                    </ProtectedRoute>
+                } />
+
+                {/* Hospitality Layer - Traveler */}
+                <Route path="/experiences" element={
+                    <ProtectedRoute>
+                        <ExperiencesMarketplace />
                     </ProtectedRoute>
                 } />
             </Routes>

@@ -14,17 +14,16 @@ export default function Login() {
     const navigate = useNavigate()
     const location = useLocation()
 
-    // Get the page user was trying to access, with role-based default
-    const getDefaultRoute = () => {
+    // Get redirect route based on user role
+    const getRedirectRoute = () => {
         const userRole = localStorage.getItem('userRole')
         return userRole === 'local' ? '/local-guide' : '/dashboard'
     }
-    const from = location.state?.from?.pathname || getDefaultRoute()
+    const from = location.state?.from?.pathname || getRedirectRoute()
 
-    // Redirect if already logged in
+    // Redirect if already logged in based on role
     if (currentUser) {
-        const userRole = localStorage.getItem('userRole')
-        const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
+        const redirectPath = getRedirectRoute()
         return <Navigate to={redirectPath} replace />
     }
 
@@ -42,9 +41,9 @@ export default function Login() {
 
         try {
             await login(email, password)
-            // Navigate based on role
+            // Navigate based on user role
             const userRole = localStorage.getItem('userRole')
-            const redirectPath = userRole === 'local' ? '/local-guide' : from
+            const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
             navigate(redirectPath, { replace: true })
         } catch (err) {
             // Error is handled by AuthContext
@@ -61,7 +60,10 @@ export default function Login() {
 
         try {
             await loginWithGoogle()
-            navigate(from, { replace: true })
+            // Navigate based on user role
+            const userRole = localStorage.getItem('userRole')
+            const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
+            navigate(redirectPath, { replace: true })
         } catch (err) {
             console.error('Google sign-in failed:', err)
         } finally {

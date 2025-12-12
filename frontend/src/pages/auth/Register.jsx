@@ -24,7 +24,10 @@ export default function Register() {
         if (!currentUser.emailVerified) {
             return <Navigate to="/verify-email" replace />
         }
-        return <Navigate to="/dashboard" replace />
+        // Redirect based on role
+        const userRole = localStorage.getItem('userRole')
+        const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
+        return <Navigate to={redirectPath} replace />
     }
 
     function handleChange(e) {
@@ -75,7 +78,14 @@ export default function Register() {
 
         try {
             await loginWithGoogle()
-            navigate('/dashboard', { replace: true })
+            // For Google sign-in, default to tourist/dashboard since no role was selected
+            // User can change role later in settings
+            if (!localStorage.getItem('userRole')) {
+                localStorage.setItem('userRole', 'tourist')
+            }
+            const userRole = localStorage.getItem('userRole')
+            const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
+            navigate(redirectPath, { replace: true })
         } catch (err) {
             console.error('Google sign-in failed:', err)
         } finally {

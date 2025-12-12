@@ -75,6 +75,9 @@ export const chatApi = {
     getConversations: () => api.get('/api/chat/conversations'),
     getMessages: (conversationId) => api.get(`/api/chat/messages/${conversationId}`),
     sendMessage: (data) => api.post('/api/chat/send', data),
+    // Community - User to User
+    getNearbyTravelers: () => api.get('/api/chat/travelers/nearby'),
+    startConversation: (data) => api.post('/api/chat/conversations', data),
 }
 
 export const notificationApi = {
@@ -109,6 +112,40 @@ export const localGuideApi = {
     // Earnings
     getEarnings: () => api.get('/api/local-guide/earnings'),
     requestWithdrawal: (data) => api.post('/api/local-guide/earnings/withdraw', data),
+}
+
+// Hospitality API endpoints (New Layer)
+export const hospitalityApi = {
+    // Traveler - Browse Experiences
+    getNearbyExperiences: (params) => api.get('/api/hospitality/experiences', { params }),
+    getExperienceById: (id) => api.get(`/api/hospitality/experiences/${id}`),
+    searchExperiences: (query) => api.get('/api/hospitality/experiences/search', { params: { q: query } }),
+
+    // Traveler - Bookings
+    createBooking: (data) => api.post('/api/hospitality/bookings', data),
+    getMyBookings: () => api.get('/api/hospitality/bookings/me'),
+    cancelBooking: (bookingId) => api.post(`/api/hospitality/bookings/${bookingId}/cancel`),
+
+    // Traveler - Reviews
+    submitReview: (experienceId, data) => api.post(`/api/hospitality/experiences/${experienceId}/review`, data),
+
+    // Host - Experience Management
+    getMyExperiences: () => api.get('/api/hospitality/host/experiences'),
+    createExperience: (data) => api.post('/api/hospitality/host/experiences', data),
+    updateExperience: (id, data) => api.put(`/api/hospitality/host/experiences/${id}`, data),
+    deleteExperience: (id) => api.delete(`/api/hospitality/host/experiences/${id}`),
+
+    // Host - Booking Management
+    getHostBookings: () => api.get('/api/hospitality/host/bookings'),
+    updateBooking: (bookingId, data) => api.put(`/api/hospitality/host/bookings/${bookingId}`, data),
+
+    // Host - Stats & Analytics
+    getHostStats: () => api.get('/api/hospitality/host/stats'),
+    getHospitalityScore: () => api.get('/api/hospitality/host/score'),
+
+    // Public - Top Hosts & Scoreboard
+    getTopHosts: (city) => api.get('/api/hospitality/top-hosts', { params: { city } }),
+    getHospitalityScoreboard: () => api.get('/api/hospitality/scoreboard'),
 }
 
 export default api
