@@ -15,11 +15,11 @@ export default function Login() {
     const location = useLocation()
 
     // Get the page user was trying to access
-    const from = location.state?.from?.pathname || '/dashboard'
+    const from = location.state?.from?.pathname || '/role-selection'
 
     // Redirect if already logged in
     if (currentUser) {
-        return <Navigate to="/dashboard" replace />
+        return <Navigate to="/role-selection" replace />
     }
 
     async function handleSubmit(e) {

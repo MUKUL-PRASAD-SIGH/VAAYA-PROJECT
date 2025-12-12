@@ -24,7 +24,7 @@ if Config.GEMINI_API_KEY:
     genai.configure(api_key=Config.GEMINI_API_KEY)
 
 # Models
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "llama3-70b-8192"
 GEMINI_MODEL = "models/gemini-2.5-flash"
 
 
@@ -32,10 +32,15 @@ def _get_groq_client():
     """Get Groq client"""
     global groq_client
     if groq_client is None and Config.GROK_API_KEY:
-        groq_client = OpenAI(
-            api_key=Config.GROK_API_KEY,
-            base_url="https://api.groq.com/openai/v1"
-        )
+        try:
+            groq_client = OpenAI(
+                api_key=Config.GROK_API_KEY,
+                base_url="https://api.groq.com/openai/v1",
+                timeout=20.0  # 20 second timeout to prevent long hangs
+            )
+            print(f"Groq client initialized with key: {Config.GROK_API_KEY[:5]}...")
+        except Exception as e:
+            print(f"Failed to initialize Groq client: {e}")
     return groq_client
 
 
@@ -108,6 +113,7 @@ def chatbot_response(user_message, context=None):
     groq = _get_groq_client()
     if groq:
         try:
+            print(f"Attempting Groq chat with model: {GROQ_MODEL}")
             messages = [{"role": "system", "content": SYSTEM_PROMPT}]
             if context and context.get('location'):
                 messages.append({"role": "system", "content": f"📍 User's destination: {context['location']}"})
@@ -119,6 +125,7 @@ def chatbot_response(user_message, context=None):
                 max_tokens=500,
                 temperature=0.7
             )
+            print("Groq chat success")
             return {
                 'success': True,
                 'message': response.choices[0].message.content,
@@ -132,6 +139,7 @@ def chatbot_response(user_message, context=None):
     gemini = _get_gemini_model()
     if gemini:
         try:
+            print(f"Attempting Gemini chat fallback with model: {GEMINI_MODEL}")
             prompt = f"{SYSTEM_PROMPT}\n\nUser: {user_message}"
             response = gemini.generate_content(prompt)
             return {
@@ -165,6 +173,7 @@ Return ONLY valid JSON (no markdown):
     groq = _get_groq_client()
     if groq:
         try:
+            print(f"Attempting Groq itinerary generation for {destination} with model {GROQ_MODEL}...")
             response = groq.chat.completions.create(
                 model=GROQ_MODEL,
                 messages=[
@@ -175,6 +184,7 @@ Return ONLY valid JSON (no markdown):
                 temperature=0.7
             )
             text = response.choices[0].message.content.strip()
+            print("Groq response received. Parsing JSON...")
             if text.startswith('```'): text = text.split('```')[1].split('```')[0].strip()
             if text.startswith('json'): text = text[4:].strip()
             return {'success': True, 'itinerary': json.loads(text), 'model': f'groq/{GROQ_MODEL}'}
