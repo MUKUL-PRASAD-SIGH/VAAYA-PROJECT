@@ -57,6 +57,8 @@ export default function Register() {
 
         try {
             await signup(formData.email, formData.password, formData.name)
+            // Save role to localStorage for post-verification redirect
+            localStorage.setItem('userRole', formData.role)
             await sendVerificationEmail()
             navigate('/verify-email', { replace: true })
         } catch (err) {

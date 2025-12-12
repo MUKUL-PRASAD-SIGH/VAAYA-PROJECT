@@ -13,13 +13,25 @@ export default function Navbar() {
     const { colors, accentColor } = useAccentColor()
     const { currentUser, logout } = useAuth()
 
-    const navLinks = [
+    // Get user role
+    const userRole = localStorage.getItem('userRole')
+
+    // Links for travelers
+    const travelerLinks = [
         { path: '/dashboard', label: 'Dashboard' },
         { path: '/quests', label: 'Quests' },
         { path: '/trips', label: 'Trips' },
         { path: '/heatmap', label: 'Heatmap' },
         { path: '/chat', label: 'Chat' },
     ]
+
+    // Links for local guides - minimal since LocalGuideDashboard has its own sidebar
+    const localGuideLinks = [
+        { path: '/local-guide', label: 'Guide Dashboard' },
+    ]
+
+    // Choose links based on role
+    const navLinks = userRole === 'local' ? localGuideLinks : travelerLinks
 
     const isActive = (path) => location.pathname === path
 

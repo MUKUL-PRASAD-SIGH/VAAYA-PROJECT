@@ -14,12 +14,18 @@ export default function Login() {
     const navigate = useNavigate()
     const location = useLocation()
 
-    // Get the page user was trying to access
-    const from = location.state?.from?.pathname || '/dashboard'
+    // Get the page user was trying to access, with role-based default
+    const getDefaultRoute = () => {
+        const userRole = localStorage.getItem('userRole')
+        return userRole === 'local' ? '/local-guide' : '/dashboard'
+    }
+    const from = location.state?.from?.pathname || getDefaultRoute()
 
     // Redirect if already logged in
     if (currentUser) {
-        return <Navigate to="/dashboard" replace />
+        const userRole = localStorage.getItem('userRole')
+        const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
+        return <Navigate to={redirectPath} replace />
     }
 
     async function handleSubmit(e) {
@@ -36,7 +42,10 @@ export default function Login() {
 
         try {
             await login(email, password)
-            navigate(from, { replace: true })
+            // Navigate based on role
+            const userRole = localStorage.getItem('userRole')
+            const redirectPath = userRole === 'local' ? '/local-guide' : from
+            navigate(redirectPath, { replace: true })
         } catch (err) {
             // Error is handled by AuthContext
             console.error('Login failed:', err)

@@ -11,6 +11,7 @@ import Heatmap from './pages/Heatmap'
 import Chat from './pages/Chat'
 import { Profile, Settings, Personalisation } from './pages/user'
 import { Login, Register, ForgotPassword, VerifyEmail } from './pages/auth'
+import { LocalGuideDashboard } from './pages/local-guide'
 
 function AppContent() {
     const { themeColors, getThemeStyles } = useTheme()
@@ -65,6 +66,13 @@ function AppContent() {
                 <Route path="/personalisation" element={
                     <ProtectedRoute>
                         <Personalisation />
+                    </ProtectedRoute>
+                } />
+
+                {/* Local Guide Dashboard Route */}
+                <Route path="/local-guide" element={
+                    <ProtectedRoute>
+                        <LocalGuideDashboard />
                     </ProtectedRoute>
                 } />
             </Routes>

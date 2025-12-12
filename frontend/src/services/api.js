@@ -82,4 +82,33 @@ export const notificationApi = {
     unsubscribe: (topic) => api.post('/api/notifications/unsubscribe', { topic }),
 }
 
+// Local Guide API endpoints
+export const localGuideApi = {
+    // Dashboard
+    getDashboard: () => api.get('/api/local-guide/dashboard'),
+
+    // Quest Management
+    getMyQuests: () => api.get('/api/local-guide/quests'),
+    createQuest: (data) => api.post('/api/local-guide/quests', data),
+    updateQuest: (questId, data) => api.put(`/api/local-guide/quests/${questId}`, data),
+    deleteQuest: (questId) => api.delete(`/api/local-guide/quests/${questId}`),
+
+    // Traveler Submissions (Verification)
+    getPendingSubmissions: (status = 'pending') => api.get(`/api/local-guide/submissions?status=${status}`),
+    verifySubmission: (submissionId, data) => api.post(`/api/local-guide/submissions/${submissionId}/verify`, data),
+
+    // Content Management (Stories, Tips, Hidden Gems)
+    getMyContent: (type = '') => api.get(`/api/local-guide/content${type ? `?type=${type}` : ''}`),
+    createContent: (data) => api.post('/api/local-guide/content', data),
+    updateContent: (contentId, data) => api.put(`/api/local-guide/content/${contentId}`, data),
+    deleteContent: (contentId) => api.delete(`/api/local-guide/content/${contentId}`),
+
+    // Analytics
+    getAnalytics: (period = 'month') => api.get(`/api/local-guide/analytics?period=${period}`),
+
+    // Earnings
+    getEarnings: () => api.get('/api/local-guide/earnings'),
+    requestWithdrawal: (data) => api.post('/api/local-guide/earnings/withdraw', data),
+}
+
 export default api

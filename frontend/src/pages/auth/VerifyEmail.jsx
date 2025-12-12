@@ -17,7 +17,9 @@ export default function VerifyEmail() {
     }
 
     if (currentUser.emailVerified) {
-        return <Navigate to="/dashboard" replace />
+        const userRole = localStorage.getItem('userRole')
+        const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
+        return <Navigate to={redirectPath} replace />
     }
 
     async function handleResendEmail() {
@@ -42,7 +44,10 @@ export default function VerifyEmail() {
         try {
             const user = await reloadUser()
             if (user.emailVerified) {
-                navigate('/dashboard', { replace: true })
+                // Redirect based on role
+                const userRole = localStorage.getItem('userRole')
+                const redirectPath = userRole === 'local' ? '/local-guide' : '/dashboard'
+                navigate(redirectPath, { replace: true })
             } else {
                 setError('Email not verified yet. Please click the link in your email.')
             }

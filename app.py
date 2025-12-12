@@ -25,6 +25,7 @@ from routes.ai_routes import ai_bp
 from routes.notification_routes import notification_bp
 from routes.quest_routes import quest_bp
 from routes.chat_routes import chat_bp
+from routes.local_guide_routes import local_guide_bp
 
 # Register API blueprints first (they are more specific)
 app.register_blueprint(user_bp, url_prefix='/api/users')
@@ -33,6 +34,7 @@ app.register_blueprint(ai_bp, url_prefix='/ai')
 app.register_blueprint(notification_bp, url_prefix='/api/notifications')
 app.register_blueprint(quest_bp, url_prefix='/api/quests')
 app.register_blueprint(chat_bp, url_prefix='/api/chat')
+app.register_blueprint(local_guide_bp, url_prefix='/api/local-guide')
 
 # ===========================
 # React Frontend Routes
