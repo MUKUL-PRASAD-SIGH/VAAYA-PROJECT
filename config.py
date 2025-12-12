@@ -21,8 +21,11 @@ class Config:
     JWT_SECRET = os.getenv('JWT_SECRET_KEY', 'jwt-secret-change-in-production')
     JWT_EXPIRATION_HOURS = int(os.getenv('JWT_EXPIRATION_HOURS', 24))
     
-    # Google Gemini API
+    # Google Gemini API (legacy/fallback)
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    
+    # xAI Grok API (primary AI provider)
+    GROK_API_KEY = os.getenv('GROK_API_KEY')
     
     # Serper API (Google Search)
     SERPER_API_KEY = os.getenv('SERPER_API_KEY')
