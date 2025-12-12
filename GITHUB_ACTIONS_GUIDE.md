@@ -459,3 +459,299 @@ You have **already met all requirements**:
 5. **Steps** = Commands within each job
 6. **Linter** = Tool that checks code quality and style
 7. **Formatter** = Tool that auto-fixes code formatting (Prettier)
+
+---
+
+## 📊 Actions Usage Metrics
+
+**What are Usage Metrics?**
+
+Usage metrics track how much of your GitHub Actions resources you're consuming. This is especially important for private repositories where you have limited free minutes.
+
+### Where to Find Usage Metrics
+
+**Path**: `Repository → Settings → Actions → General → Usage`
+
+Or navigate to: `https://github.com/MUKUL-PRASAD-SIGH/VAAYA-PROJECT/settings/actions`
+
+### Usage Metrics Visualization
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   GITHUB ACTIONS USAGE                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  📅 Billing Period: Dec 1 - Dec 31, 2024                    │
+│                                                              │
+│  ┌─────────────────────────────────────────────────┐        │
+│  │ Minutes Used This Month                          │        │
+│  │ ████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░  234/2000│        │
+│  │                                          (11.7%) │        │
+│  └─────────────────────────────────────────────────┘        │
+│                                                              │
+│  Breakdown by Operating System:                              │
+│  ┌─────────────────────────────────────────────────┐        │
+│  │ Ubuntu (Linux)    ████████████████  180 min      │        │
+│  │ Windows           ████              40 min       │        │
+│  │ macOS             ██                14 min       │        │
+│  └─────────────────────────────────────────────────┘        │
+│                                                              │
+│  ⚠️ Note: macOS minutes cost 10x, Windows costs 2x          │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Usage Metrics Explained
+
+| Metric | Description | Free Tier Limit |
+|--------|-------------|-----------------|
+| **Total Minutes** | Total workflow execution time | 2,000 min/month (private) |
+| **Linux Minutes** | Minutes on ubuntu-latest | 1x multiplier |
+| **Windows Minutes** | Minutes on windows-latest | 2x multiplier |
+| **macOS Minutes** | Minutes on macos-latest | 10x multiplier |
+| **Storage** | Artifacts and packages storage | 500 MB |
+
+### Cost Calculation Example
+
+```
+Your Workflows:
+  └── Linter Workflow (runs on ubuntu-latest)
+       └── 3 jobs × 2 minutes each = 6 minutes per run
+       └── 10 pushes per day = 60 minutes per day
+       └── 30 days = 1,800 minutes per month
+
+Remaining: 2,000 - 1,800 = 200 minutes ✅
+```
+
+---
+
+## ⚡ Actions Performance Metrics
+
+**What are Performance Metrics?**
+
+Performance metrics help you understand how fast and efficient your workflows are running. This helps identify bottlenecks and optimize your CI/CD pipeline.
+
+### Where to Find Performance Metrics
+
+**Path**: `Repository → Actions → ⚡ Insights (top right corner)`
+
+Or navigate to: `https://github.com/MUKUL-PRASAD-SIGH/VAAYA-PROJECT/actions/metrics`
+
+### Workflow Insights Table (What You See in GitHub)
+
+This is the **actual table** shown in GitHub Actions Insights:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         GITHUB ACTIONS INSIGHTS                                  │
+│                    (Repository → Actions → ⚡ Insights)                          │
+├──────────────────────────────┬────────────────┬────────────┬───────────┬────────┤
+│ Workflow                     │ Has job        │ Avg run    │ Workflow  │        │
+│                              │ failures       │ time       │ runs      │ Jobs   │
+├──────────────────────────────┼────────────────┼────────────┼───────────┼────────┤
+│ lint.yml                     │ 100% ✅        │ 34s        │ 1         │ 3      │
+├──────────────────────────────┼────────────────┼────────────┼───────────┼────────┤
+│ copilot-pull-request-reviewer│ 0% ❌          │ 4m 17s     │ 2         │ 6      │
+├──────────────────────────────┴────────────────┴────────────┴───────────┴────────┤
+│                         Showing 1 through 2 of 2                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Understanding Each Column
+
+| Column | Meaning | Your Values |
+|--------|---------|-------------|
+| **Workflow** | Name of the workflow file (.yml) | `lint.yml`, `copilot-pull-request-reviewer` |
+| **Has job failures** | % of runs where NO jobs failed (success rate) | 100% = All passed ✅, 0% = All failed ❌ |
+| **Avg run time** | Average duration across all runs | 34s (fast!), 4m 17s (slower) |
+| **Workflow runs** | Total number of times this workflow ran | 1, 2 |
+| **Jobs** | Total number of job executions | 3 (ESLint + Flake8 + Prettier), 6 |
+
+### Your Current Metrics Explained
+
+```
+📊 YOUR VAAYA-PROJECT METRICS:
+
+┌──────────────────────────────────────────────────────────────┐
+│  🔧 lint.yml                                                  │
+│                                                               │
+│    Success Rate:  ████████████████████  100%  ← EXCELLENT!   │
+│    Avg Time:      34 seconds            ← VERY FAST!         │
+│    Runs:          1                                           │
+│    Jobs:          3 (ESLint, Flake8, Prettier)               │
+│                                                               │
+│    ✅ Status: Working perfectly!                              │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│  🤖 copilot-pull-request-reviewer                            │
+│                                                               │
+│    Success Rate:  ░░░░░░░░░░░░░░░░░░░░  0%   ← NEEDS FIX    │
+│    Avg Time:      4m 17s               ← SLOWER             │
+│    Runs:          2                                           │
+│    Jobs:          6                                           │
+│                                                               │
+│    ❌ Status: All runs have job failures                      │
+│    💡 Tip: Check the logs to see why it's failing            │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### How to Access Workflow Insights
+
+1. Go to your repository: `github.com/MUKUL-PRASAD-SIGH/VAAYA-PROJECT`
+2. Click the **Actions** tab
+3. Look for **⚡ Insights** button in the top-right corner
+4. You'll see the table with all workflow metrics!
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  GitHub Repository Header                                   │
+├────────────────────────────────────────────────────────────┤
+│  📁 Code  |  🔀 Pull requests  |  ▶️ Actions  |  ...       │
+├────────────────────────────────────────────────────────────┤
+│                                                             │
+│  All workflows ▼          🔍 Filter...     [⚡ Insights] ←─┼─ CLICK HERE!
+│                                                             │
+│  ├── lint.yml                                               │
+│  ├── copilot-pull-request-reviewer                          │
+│                                                             │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Per-Run Performance Dashboard Visualization
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 WORKFLOW PERFORMANCE DASHBOARD               │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Workflow: Linter Workflow                                   │
+│  Run #45 | Triggered by: push to main                        │
+│  Total Duration: 2m 34s                                      │
+│                                                              │
+│  ═══════════════════════════════════════════════════════    │
+│                                                              │
+│  JOBS TIMELINE (Parallel Execution):                         │
+│                                                              │
+│  Time →  0s    30s    60s    90s    120s   150s             │
+│          ├──────┼──────┼──────┼──────┼──────┤               │
+│          │                                   │               │
+│  ESLint  │████████████████████░░░░░░░░░░░░░│ 1m 15s ✅      │
+│          │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓             │               │
+│          │                                   │               │
+│  Python  │█████████████████████████████░░░░│ 2m 08s ✅      │
+│          │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓    │               │
+│          │                                   │               │
+│  Prettier│██████████░░░░░░░░░░░░░░░░░░░░░░░│ 0m 42s ✅      │
+│          │▓▓▓▓▓▓▓▓▓▓                        │               │
+│          └───────────────────────────────────┘               │
+│                                                              │
+│  Legend: █ = Running  ░ = Waiting  ▓ = Setup/Checkout        │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Job Step Breakdown
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ESLint Job Breakdown                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Step                          Duration    Status            │
+│  ─────────────────────────────────────────────────          │
+│  ☐ Set up job                    8s        ✅               │
+│  ☐ Checkout code                12s        ✅               │
+│  ☐ Setup Node.js                 6s        ✅               │
+│  ☐ Install dependencies         35s        ✅ ← Slowest!    │
+│  ☐ Run ESLint                   14s        ✅               │
+│  ☐ Post cleanup                  2s        ✅               │
+│  ─────────────────────────────────────────────────          │
+│  TOTAL                         1m 17s                        │
+│                                                              │
+│  💡 Optimization tip: Cache node_modules to reduce           │
+│     "Install dependencies" step by ~25 seconds               │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Performance Metrics Explained
+
+| Metric | Description | Good Benchmark |
+|--------|-------------|----------------|
+| **Total Duration** | End-to-end workflow time | < 5 minutes |
+| **Queue Time** | Time waiting for a runner | < 10 seconds |
+| **Setup Time** | Runner initialization | < 15 seconds |
+| **Checkout Time** | Fetching repository code | < 20 seconds |
+| **Dependencies** | Installing packages | < 60 seconds |
+| **Linting Time** | Actual linter execution | < 30 seconds |
+
+### Performance Trends Graph
+
+```
+           Workflow Duration Over Time (Last 10 Runs)
+           
+   3m ┤                                                    
+      │      ●                                             
+ 2.5m ┤     ╱ ╲                                            
+      │    ╱   ╲   ●                                       
+   2m ┤   ╱     ╲ ╱ ╲                                      
+      │  ●       ●   ╲   ●───●                             
+ 1.5m ┤ ╱             ╲ ╱     ╲                            
+      │●               ●       ╲   ●───●                   
+   1m ┤                         ╲ ╱     ╲●                 
+      │                          ●                         
+ 0.5m ┤                                                    
+      │                                                    
+   0m ┼────┬────┬────┬────┬────┬────┬────┬────┬────┬────   
+        #36  #37  #38  #39  #40  #41  #42  #43  #44  #45   
+                         Run Number
+                         
+   📉 Average: 1m 48s  |  📈 Peak: 2m 34s  |  📉 Low: 1m 02s
+```
+
+---
+
+## 🔗 How to Navigate to Metrics Pages
+
+### Usage Metrics Path
+```
+GitHub Repository
+    └── ⚙️ Settings (tab)
+           └── 📋 Actions (sidebar)
+                  └── 📊 General
+                         └── Usage limits, permissions & workflow permissions
+                  
+Alternative URL: github.com/{owner}/{repo}/settings/actions
+```
+
+### Performance Metrics Path
+```
+GitHub Repository
+    └── ▶️ Actions (tab)
+           └── 📋 Linter Workflow (left sidebar)
+                  └── 🔢 Run #45 (click on any run)
+                         └── 📊 Jobs section (view timing)
+                         └── 📈 Graph icon (workflow insights)
+                         
+Alternative URL: github.com/{owner}/{repo}/actions/runs/{run-id}
+```
+
+### Workflow Insights (Beta)
+```
+GitHub Repository
+    └── ▶️ Actions (tab)
+           └── 📈 Insights (top right)
+                  └── Shows: Success rate, Duration trends, Most failed jobs
+```
+
+---
+
+## 📈 Key Takeaways
+
+| Category | What to Monitor | Action if Issues |
+|----------|-----------------|------------------|
+| **Usage** | Minutes remaining | Switch to Linux runners, optimize jobs |
+| **Performance** | Duration trends | Add caching, parallelize jobs |
+| **Success Rate** | Pass/fail ratio | Fix flaky tests, improve code quality |
+| **Queue Time** | Time waiting | Upgrade plan or reduce workflow frequency |
