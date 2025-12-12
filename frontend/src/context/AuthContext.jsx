@@ -168,8 +168,6 @@ export function AuthProvider({ children }) {
                 return 'Too many failed attempts. Please try again later.'
             case 'auth/popup-closed-by-user':
                 return 'Sign-in popup was closed.'
-            case 'auth/too-many-requests':
-                return 'Please wait a moment before trying again.'
             default:
                 return 'An error occurred. Please try again.'
         }
