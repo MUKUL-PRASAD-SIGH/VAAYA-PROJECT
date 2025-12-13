@@ -195,12 +195,8 @@ def complete_quest(current_user, quest_id):
 Returns all available quests for display in the frontend
 """
 
-from flask import Blueprint, request, jsonify
-from bson import ObjectId
-from datetime import datetime
-from db import db
+# Removed duplicate blueprint initialization
 
-quest_bp = Blueprint('quests', __name__, url_prefix='/api/quests')
 
 
 @quest_bp.route('/all', methods=['GET'])
@@ -208,86 +204,72 @@ quest_bp = Blueprint('quests', __name__, url_prefix='/api/quests')
 def get_all_quests():
     """
     Fetch all active quests for display in the React frontend.
+    Includes quests created by local guides.
     """
     try:
-        # Fetch all quests (you can add filters here later)
-        quests = list(db.quests.find({}).sort("created_at", -1))
+        # Get user location and radius from query params
+        user_lat = request.args.get('lat', type=float)
+        user_lng = request.args.get('lng', type=float)
+        radius = request.args.get('radius', default=10000, type=int) # Default 10km
+
+        # Build query
+        query = {'active': True}
+        
+        # Add geospatial filter if location provided
+        if user_lat and user_lng:
+            query['location'] = {
+                '$near': {
+                    '$geometry': {
+                        'type': 'Point',
+                        'coordinates': [user_lng, user_lat]
+                    },
+                    '$maxDistance': radius
+                }
+            }
+
+        # Fetch quests (sorted by distance automatically by $near if used)
+        if 'location' in query:
+            quests = list(db.quests.find(query))
+        else:
+            quests = list(db.quests.find(query).sort("created_at", -1))
         result = []
 
         for q in quests:
-            result.append({
+            # Extract coordinates (stored as [lng, lat] in MongoDB)
+            location_coords = q.get('location', {}).get('coordinates', [0, 0])
+            # Handle both list [lng, lat] and dict {lat, lng} legacy formats
+            if isinstance(location_coords, dict):
+                quest_lat = location_coords.get('lat', 0)
+                quest_lng = location_coords.get('lng', 0)
+            else:
+                quest_lng, quest_lat = location_coords[0], location_coords[1]
+            
+            quest_data = {
                 'id': str(q['_id']),
                 'name': q.get('title', 'Unnamed Quest'),
                 'description': q.get('description', 'Help improve the environment through this quest!'),
-                'location': q.get('location_name', 'Unknown Location'),
-                'points': q.get('points', 50),
-                'difficulty': q.get('difficulty', 'Easy'),
+                'location': q.get('location', {}).get('name', 'Unknown Location'),
+                'coordinates': {'lat': quest_lat, 'lng': quest_lng},
+                'points': q.get('reward_points', 50),
+                'difficulty': q.get('difficulty', 'Easy').capitalize(),
                 'category': q.get('category', 'environment'),
-                'requirements': q.get('requirements', [
+                'requirements': q.get('verification_instructions', '').split('\n') if q.get('verification_instructions') else [
                     'Take before and after cleanup photos',
                     'Dispose collected trash properly',
                     'Submit proof through the app'
-                ]),
-            })
+                ],
+                'estimated_time': q.get('estimated_time', 30),
+                'radius_meters': q.get('radius_meters', 100)
+            }
+            
+            # Calculate distance if user location provided
+            if user_lat and user_lng:
+                distance = calculate_distance(user_lat, user_lng, quest_lat, quest_lng)
+                quest_data['distance_meters'] = round(distance, 2)
+            
+            result.append(quest_data)
 
-        # If no quests in database, return demo quests
-        if len(result) == 0:
-            result = [
-                {
-                    'id': 'demo-1',
-                    'name': 'Clean Cups Outside CSE Lab 3',
-                    'description': 'Help keep our campus clean by collecting disposable cups scattered outside CSE Lab 3. Take before and after photos to verify your cleanup effort!',
-                    'location': 'CSE Lab 3, MSRIT',
-                    'points': 50,
-                    'difficulty': 'Easy',
-                    'category': 'environment',
-                    'requirements': [
-                        'Take a "before" photo showing cups/trash',
-                        'Collect all disposable cups and trash',
-                        'Take an "after" photo showing clean area',
-                        'Dispose trash in designated bins'
-                    ],
-                },
-                {
-                    'id': 'demo-2',
-                    'name': 'Clean Beach Quest',
-                    'description': 'Help clean up the beach and earn rewards!',
-                    'location': 'Malpe Beach, Udupi',
-                    'points': 100,
-                    'difficulty': 'Easy',
-                    'category': 'environment',
-                    'requirements': [
-                        'Take a photo of collected trash',
-                        'Upload proof of disposal'
-                    ],
-                },
-                {
-                    'id': 'demo-3',
-                    'name': 'Heritage Walk',
-                    'description': 'Explore historical monuments and learn about local culture.',
-                    'location': 'Mysore Palace',
-                    'points': 150,
-                    'difficulty': 'Medium',
-                    'category': 'culture',
-                    'requirements': [
-                        'Visit 3 monuments',
-                        'Take photos at each location'
-                    ],
-                },
-                {
-                    'id': 'demo-4',
-                    'name': 'Local Food Trail',
-                    'description': 'Discover authentic local cuisine from street vendors.',
-                    'location': 'VV Puram Food Street, Bangalore',
-                    'points': 75,
-                    'difficulty': 'Easy',
-                    'category': 'food',
-                    'requirements': [
-                        'Try 3 different foods',
-                        'Share reviews'
-                    ],
-                },
-            ]
+        # Demo data block removed to show only real DB quests
 
         return jsonify({
             'success': True,

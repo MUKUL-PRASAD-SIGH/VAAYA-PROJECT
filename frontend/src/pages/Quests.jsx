@@ -32,60 +32,105 @@ export default function Quests() {
         : 'bg-white text-gray-800 border-gray-300'
     const modalBg = isDarkMode ? 'bg-gray-800' : 'bg-white'
 
+    const [userLocation, setUserLocation] = useState(null)
+    const [searchRadius, setSearchRadius] = useState(10000) // 10 km default
+
+    // Dummy data for immediate display
+    const DUMMY_QUESTS = [
+        {
+            id: 'd1',
+            name: "Lalbagh Flower Show Cleanup",
+            points: 150,
+            location: "Lalbagh Botanical Garden",
+            coords: { lat: 12.9507, lng: 77.5848 },
+            description: "Help maintain the beauty of the annual flower show by collecting plastic waste.",
+            distance_meters: 2500,
+            difficulty: "Easy",
+            category: "environment",
+        },
+        {
+            id: 'd2',
+            name: "Cubbon Park Heritage Walk",
+            points: 200,
+            location: "Cubbon Park",
+            coords: { lat: 12.9779, lng: 77.5925 },
+            description: "Guide tourists through the colonial history of Cubbon Park markers.",
+            distance_meters: 4200,
+            difficulty: "Medium",
+            category: "culture",
+        },
+        {
+            id: 'd3',
+            name: "Street Dog Feeding Drive",
+            points: 100,
+            location: "Indiranagar 100ft Road",
+            coords: { lat: 12.9784, lng: 77.6408 },
+            description: "Join the local community in feeding stray dogs responsibly.",
+            distance_meters: 1500,
+            difficulty: "Easy",
+            category: "community",
+        }
+    ]
+
     useEffect(() => {
         loadQuests()
     }, [])
 
-    const loadQuests = async () => {
+    const loadQuests = async (coords = null, radius = null) => {
         try {
-            const response = await questsApi.getAll()
-            setQuests(response.data.quests || [])
+            setLoading(true)
+            const params = {}
+
+            // Use provided coords or current state
+            const targetLocation = coords || userLocation
+            if (targetLocation) {
+                params.lat = targetLocation.lat
+                params.lng = targetLocation.lng
+                params.radius = radius || searchRadius
+            }
+
+            const response = await questsApi.getAll(params)
+            // effectiveQuests = API quests + Dummy quests (for demo purposes)
+            const apiQuests = response.data.quests || []
+            setQuests([...apiQuests, ...DUMMY_QUESTS])
         } catch (error) {
             console.error('Error loading quests:', error)
-            setQuests([
-                {
-                    id: 1,
-                    name: 'Clean Cups Outside CSE Lab 3',
-                    description: 'Help keep our campus clean by collecting disposable cups scattered outside CSE Lab 3. Take before and after photos to verify your cleanup effort!',
-                    location: 'CSE Lab 3, MSRIT',
-                    points: 50,
-                    difficulty: 'Easy',
-                    category: 'environment',
-                    requirements: ['Take a "before" photo showing cups/trash', 'Collect all disposable cups and trash', 'Take an "after" photo showing clean area', 'Dispose trash in designated bins'],
-                },
-                {
-                    id: 2,
-                    name: 'Clean Beach Quest',
-                    description: 'Help clean up the beach and earn rewards!',
-                    location: 'Malpe Beach, Udupi',
-                    points: 100,
-                    difficulty: 'Easy',
-                    category: 'environment',
-                    requirements: ['Take a photo of collected trash', 'Upload proof of disposal'],
-                },
-                {
-                    id: 3,
-                    name: 'Heritage Walk',
-                    description: 'Explore historical monuments and learn about local culture.',
-                    location: 'Mysore Palace',
-                    points: 150,
-                    difficulty: 'Medium',
-                    category: 'culture',
-                    requirements: ['Visit 3 monuments', 'Take photos at each location'],
-                },
-                {
-                    id: 4,
-                    name: 'Local Food Trail',
-                    description: 'Discover authentic local cuisine from street vendors.',
-                    location: 'VV Puram Food Street, Bangalore',
-                    points: 75,
-                    difficulty: 'Easy',
-                    category: 'food',
-                    requirements: ['Try 3 different foods', 'Share reviews'],
-                },
-            ])
+            setQuests([])
         } finally {
             setLoading(false)
+        }
+    }
+
+
+    const handleUseMyLocation = () => {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser')
+            return
+        }
+
+        setLoading(true)
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const coords = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                }
+                setUserLocation(coords)
+                loadQuests(coords, searchRadius)
+            },
+            (error) => {
+                console.error('Error getting location:', error)
+                alert('Unable to retrieve your location. Please check permissions.')
+                setLoading(false)
+            }
+        )
+    }
+
+    const handleRadiusChange = (e) => {
+        const newRadius = parseInt(e.target.value)
+        setSearchRadius(newRadius)
+        if (userLocation) {
+            loadQuests(userLocation, newRadius)
         }
     }
 
@@ -200,9 +245,37 @@ export default function Quests() {
     return (
         <div className="container mx-auto px-4 py-8">
             {/* Header */}
-            <div className="mb-8">
-                <h2 className={`text-3xl font-bold ${textPrimary} mb-2`}>Available Quests</h2>
-                <p className={textSecondary}>Complete quests to earn points and unlock rewards</p>
+            <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 className={`text-3xl font-bold ${textPrimary} mb-2`}>Available Quests</h2>
+                    <p className={textSecondary}>Complete quests to earn points and unlock rewards</p>
+                </div>
+
+                <div className={`${cardClass} p-4 rounded-lg shadow flex items-center gap-4`}>
+                    <button
+                        onClick={handleUseMyLocation}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Find Near Me
+                    </button>
+
+                    <select
+                        value={searchRadius}
+                        onChange={handleRadiusChange}
+                        className={`px-3 py-2 rounded-lg border ${inputClass}`}
+                        aria-label="Search Radius"
+                    >
+                        <option value="1000">1 km</option>
+                        <option value="5000">5 km</option>
+                        <option value="10000">10 km</option>
+                        <option value="20000">20 km</option>
+                        <option value="50000">50 km</option>
+                    </select>
+                </div>
             </div>
 
             {/* Filters */}
@@ -297,7 +370,18 @@ export default function Quests() {
                                 </div>
                                 <p className={`${textSecondary} text-sm mb-4 line-clamp-2`}>{quest.description}</p>
                                 <div className="flex items-center justify-between">
-                                    <span className={`text-sm ${textMuted}`}>Location: {quest.location}</span>
+                                    <div className="flex flex-col">
+                                        <span className={`text-sm ${textMuted}`}>Location: {quest.location}</span>
+                                        {quest.distance_meters !== undefined && (
+                                            <span className={`text-xs ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} font-semibold flex items-center mt-1`}>
+                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                                {(quest.distance_meters / 1000).toFixed(2)} km away
+                                            </span>
+                                        )}
+                                    </div>
                                     <span className={`px-2 py-1 rounded text-xs ${getDifficultyColor(quest.difficulty)}`}>
                                         {quest.difficulty}
                                     </span>

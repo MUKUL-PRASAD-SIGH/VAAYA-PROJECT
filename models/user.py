@@ -111,6 +111,21 @@ def create_user_from_firebase(firebase_uid, email, password=None, preference='us
         print(f"DEBUG: User already exists with Firebase UID: {firebase_uid}")
         return existing
     
+    # Check if email exists (prevent DuplicateKeyError)
+    if email:
+        existing_email = find_user_by_email(email)
+        if existing_email:
+            print(f"DEBUG: Linking existing email {email} to Firebase UID {firebase_uid}")
+            users_collection.update_one(
+                {'_id': existing_email['_id']},
+                {'$set': {
+                    'firebase_uid': firebase_uid,
+                    'verified': True,
+                    'last_login': datetime.utcnow()
+                }}
+            )
+            return users_collection.find_one({'_id': existing_email['_id']})
+    
     # Hash password if provided
     password_hash = None
     if password:

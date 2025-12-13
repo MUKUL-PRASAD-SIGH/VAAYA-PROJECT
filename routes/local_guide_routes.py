@@ -3,7 +3,8 @@ Local Guide Routes - API endpoints for local guide features
 Quest creation, content management, analytics, and earnings
 """
 from flask import Blueprint, request, jsonify
-from utils.jwt_utils import token_required
+from utils.firebase_utils import firebase_required
+from models import find_user_by_firebase_uid
 from bson.objectid import ObjectId
 from datetime import datetime
 from models import db
@@ -13,8 +14,37 @@ local_guide_bp = Blueprint('local_guide', __name__)
 # Collections
 quests_collection = db.quests
 content_collection = db.local_content
+folklore_collection = db.folklore
 earnings_collection = db.earnings
 analytics_collection = db.guide_analytics
+
+
+# ===========================
+# Helper Functions
+# ===========================
+
+def get_user_id_from_firebase(current_user):
+    """
+    Get MongoDB user _id from Firebase UID
+    Creates user if doesn't exist
+    """
+    firebase_uid = current_user.get('uid')
+    if not firebase_uid:
+        return None
+    
+    user = find_user_by_firebase_uid(firebase_uid)
+    if user:
+        return str(user.get('_id'))
+    
+    # User doesn't exist in MongoDB yet - create them
+    from models.user import create_user_from_firebase
+    new_user = create_user_from_firebase(
+        firebase_uid=firebase_uid,
+        email=current_user.get('email', ''),
+        preference='local',  # Default to local for local-guide routes
+        name=current_user.get('name', '')
+    )
+    return str(new_user.get('_id'))
 
 
 # ===========================
@@ -22,7 +52,7 @@ analytics_collection = db.guide_analytics
 # ===========================
 
 @local_guide_bp.route('/quests', methods=['GET'])
-@token_required
+@firebase_required
 def get_my_quests(current_user):
     """
     Get all quests created by the local guide
@@ -30,7 +60,9 @@ def get_my_quests(current_user):
     GET /api/local-guide/quests
     """
     try:
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         
         quests = list(quests_collection.find({
             'local_id': ObjectId(user_id)
@@ -51,7 +83,7 @@ def get_my_quests(current_user):
 
 
 @local_guide_bp.route('/quests', methods=['POST'])
-@token_required
+@firebase_required
 def create_quest(current_user):
     """
     Create a new quest
@@ -74,7 +106,9 @@ def create_quest(current_user):
     """
     try:
         data = request.get_json()
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         
         # Validate required fields
         required_fields = ['title', 'description', 'category', 'location']
@@ -82,23 +116,37 @@ def create_quest(current_user):
             if not data.get(field):
                 return jsonify({'error': f'{field} is required'}), 400
         
+        # Get location name
+        location_data = data['location']
+        location_name = location_data.get('name', '')
+        
+        # Parse coordinates (handle both dict and list formats)
+        coords_input = location_data.get('coordinates')
+        lat, lng = 0, 0
+        
+        if isinstance(coords_input, list) and len(coords_input) >= 2:
+            lng, lat = coords_input[0], coords_input[1]
+        elif isinstance(coords_input, dict):
+            lat = coords_input.get('lat', 0)
+            lng = coords_input.get('lng', 0)
+            
+        if not location_name:
+            location_name = f"{lat:.4f}, {lng:.4f}"
+        
         quest = {
             'local_id': ObjectId(user_id),
             'title': data['title'],
             'description': data['description'],
-            'category': data['category'],  # environmental, cultural, community, heritage, responsible
+            'category': data['category'],
             'location': {
-                'name': data['location'].get('name', ''),
+                'name': location_name,
                 'type': 'Point',
-                'coordinates': [
-                    data['location'].get('coordinates', {}).get('lng', 0),
-                    data['location'].get('coordinates', {}).get('lat', 0)
-                ]
+                'coordinates': [lng, lat]
             },
-            'radius_meters': data.get('radius_meters', 100),  # Geo-fence radius
+            'radius_meters': data.get('radius_meters', 100),
             'reward_points': data.get('reward_points', 50),
             'difficulty': data.get('difficulty', 'medium'),
-            'estimated_time': data.get('estimated_time', 30),  # minutes
+            'estimated_time': data.get('estimated_time', 30),
             'verification_type': data.get('verification_type', 'photo'),
             'verification_instructions': data.get('verification_instructions', ''),
             'tags': data.get('tags', []),
@@ -125,7 +173,7 @@ def create_quest(current_user):
 
 
 @local_guide_bp.route('/quests/<quest_id>', methods=['PUT'])
-@token_required
+@firebase_required
 def update_quest(current_user, quest_id):
     """
     Update a quest
@@ -134,7 +182,9 @@ def update_quest(current_user, quest_id):
     """
     try:
         data = request.get_json()
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         
         # Verify ownership
         quest = quests_collection.find_one({
@@ -169,13 +219,15 @@ def update_quest(current_user, quest_id):
 
 
 @local_guide_bp.route('/quests/<quest_id>', methods=['DELETE'])
-@token_required
+@firebase_required
 def delete_quest(current_user, quest_id):
     """
     Delete a quest (soft delete by setting active=False)
     """
     try:
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         
         result = quests_collection.update_one(
             {'_id': ObjectId(quest_id), 'local_id': ObjectId(user_id)},
@@ -191,12 +243,71 @@ def delete_quest(current_user, quest_id):
         return jsonify({'error': str(e)}), 500
 
 
+@local_guide_bp.route('/quests/stats', methods=['GET'])
+@firebase_required
+def get_quest_stats(current_user):
+    """
+    Get quest statistics for local guide dashboard
+    
+    GET /api/local-guide/quests/stats
+    
+    Returns:
+    {
+        "total_quests": 5,
+        "active_quests": 3,
+        "completed_quests": 12,
+        "pending_verifications": 2,
+        "total_earnings": 600,
+        "top_quest": {
+            "title": "Temple Clean-Up",
+            "completions": 10
+        }
+    }
+    """
+    try:
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
+        
+        # Get all quests by this guide
+        all_quests = list(quests_collection.find({'local_id': ObjectId(user_id)}))
+        active_quests = [q for q in all_quests if q.get('active', True)]
+        
+        # Calculate total completions
+        total_completions = sum(q.get('completions', 0) for q in all_quests)
+        total_pending = sum(q.get('pending_verifications', 0) for q in all_quests)
+        
+        # Get top performing quest
+        top_quest = max(all_quests, key=lambda q: q.get('completions', 0)) if all_quests else None
+        
+        # Calculate total earnings (from completions)
+        total_earnings = 0
+        for quest in all_quests:
+            earnings_per_completion = quest.get('reward_points', 0) * 0.1  # 10% commission
+            total_earnings += earnings_per_completion * quest.get('completions', 0)
+        
+        return jsonify({
+            'total_quests': len(all_quests),
+            'active_quests': len(active_quests),
+            'completed_quests': total_completions,
+            'pending_verifications': total_pending,
+            'total_earnings': int(total_earnings),
+            'top_quest': {
+                'title': top_quest.get('title', 'N/A'),
+                'completions': top_quest.get('completions', 0)
+            } if top_quest else None
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # ===========================
 # Traveler Submissions (Verification)
 # ===========================
 
 @local_guide_bp.route('/submissions', methods=['GET'])
-@token_required
+@firebase_required
 def get_pending_submissions(current_user):
     """
     Get pending quest submissions for verification
@@ -204,7 +315,9 @@ def get_pending_submissions(current_user):
     GET /api/local-guide/submissions?status=pending
     """
     try:
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         status = request.args.get('status', 'pending')
         
         # Get quests created by this guide
@@ -247,7 +360,7 @@ def get_pending_submissions(current_user):
 
 
 @local_guide_bp.route('/submissions/<submission_id>/verify', methods=['POST'])
-@token_required
+@firebase_required
 def verify_submission(current_user, submission_id):
     """
     Approve or reject a quest submission
@@ -260,7 +373,9 @@ def verify_submission(current_user, submission_id):
     """
     try:
         data = request.get_json()
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         approved = data.get('approved', False)
         feedback = data.get('feedback', '')
         
@@ -322,7 +437,7 @@ def verify_submission(current_user, submission_id):
 # ===========================
 
 @local_guide_bp.route('/content', methods=['GET'])
-@token_required
+@firebase_required
 def get_my_content(current_user):
     """
     Get all content created by the local guide
@@ -330,7 +445,9 @@ def get_my_content(current_user):
     GET /api/local-guide/content?type=story
     """
     try:
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         content_type = request.args.get('type')
         
         query = {'author_id': ObjectId(user_id)}
@@ -353,7 +470,7 @@ def get_my_content(current_user):
 
 
 @local_guide_bp.route('/content', methods=['POST'])
-@token_required
+@firebase_required
 def create_content(current_user):
     """
     Create new content (story, tip, hidden gem, event)
@@ -373,7 +490,9 @@ def create_content(current_user):
     """
     try:
         data = request.get_json()
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         
         content_item = {
             'author_id': ObjectId(user_id),
@@ -412,14 +531,16 @@ def create_content(current_user):
 
 
 @local_guide_bp.route('/content/<content_id>', methods=['PUT'])
-@token_required
+@firebase_required
 def update_content(current_user, content_id):
     """
-    Update content
+    Update content (auto-syncs to folklore collection when published)
     """
     try:
         data = request.get_json()
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         
         # Verify ownership
         content = content_collection.find_one({
@@ -430,8 +551,9 @@ def update_content(current_user, content_id):
         if not content:
             return jsonify({'error': 'Content not found or not authorized'}), 404
         
+        old_status = content.get('status')
         update_fields = {}
-        allowed = ['title', 'content', 'tags', 'media', 'status']
+        allowed = ['title', 'content', 'tags', 'media', 'status', 'xp_required', 'geofence']
         
         for field in allowed:
             if field in data:
@@ -443,8 +565,410 @@ def update_content(current_user, content_id):
                 {'_id': ObjectId(content_id)},
                 {'$set': update_fields}
             )
+            
+            # 🔄 Auto-sync to folklore collection when status changes to 'published'
+            new_status = data.get('status')
+            if new_status == 'published' and old_status != 'published':
+                # Get updated content
+                updated_content = content_collection.find_one({'_id': ObjectId(content_id)})
+                
+                # Check if already exists in folklore
+                existing_folklore = folklore_collection.find_one({'source_local_id': ObjectId(content_id)})
+                
+                if existing_folklore:
+                    # Update existing folklore entry
+                    folklore_collection.update_one(
+                        {'source_local_id': ObjectId(content_id)},
+                        {'$set': {
+                            'title': updated_content.get('title'),
+                            'content': updated_content.get('content'),
+                            'tags': updated_content.get('tags', []),
+                            'media': updated_content.get('media', []),
+                            'status': 'published',
+                            'xp_required': updated_content.get('xp_required', 0),
+                            'geofence': updated_content.get('geofence'),
+                            'updated_at': datetime.utcnow()
+                        }}
+                    )
+                else:
+                    # Create new folklore entry
+                    folklore_item = {
+                        'source_local_id': ObjectId(content_id),
+                        'author_id': updated_content['author_id'],
+                        'type': updated_content.get('type', 'story'),
+                        'title': updated_content.get('title', ''),
+                        'content': updated_content.get('content', ''),
+                        'location': updated_content.get('location'),
+                        'tags': updated_content.get('tags', []),
+                        'media': updated_content.get('media', []),
+                        'status': 'published',
+                        'xp_required': updated_content.get('xp_required', 0),
+                        'geofence': updated_content.get('geofence'),
+                        'likes': 0,
+                        'unlocks': 0,
+                        'views': 0,
+                        'created_at': updated_content.get('created_at', datetime.utcnow()),
+                        'updated_at': datetime.utcnow()
+                    }
+                    folklore_collection.insert_one(folklore_item)
         
         return jsonify({'message': 'Content updated successfully'}), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@local_guide_bp.route('/content/<content_id>', methods=['DELETE'])
+@firebase_required
+def delete_content(current_user, content_id):
+    """
+    Delete content (soft delete by setting active=False)
+    
+    DELETE /api/local-guide/content/<content_id>
+    """
+    try:
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
+        
+        # Verify ownership
+        content = content_collection.find_one({
+            '_id': ObjectId(content_id),
+            'author_id': ObjectId(user_id)
+        })
+        
+        if not content:
+            return jsonify({'error': 'Content not found or not authorized'}), 404
+        
+        # Soft delete
+        content_collection.update_one(
+            {'_id': ObjectId(content_id)},
+            {'$set': {'active': False, 'deleted_at': datetime.utcnow()}}
+        )
+        
+        # Also remove from folklore if it was published
+        if content.get('status') == 'published':
+            folklore_collection.update_one(
+                {'source_local_id': ObjectId(content_id)},
+                {'$set': {'status': 'deleted', 'deleted_at': datetime.utcnow()}}
+            )
+        
+        return jsonify({'message': 'Content deleted successfully'}), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ===========================
+# 🏨 Hospitality Management
+# ===========================
+
+@local_guide_bp.route('/hospitality', methods=['GET'])
+@firebase_required
+def get_my_hospitality_services(current_user):
+    """
+    Get all hospitality services added by this local guide
+
+    GET /api/local-guide/hospitality
+    Query: ?type=restaurant/stay/experience/event
+    """
+    try:
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
+        service_type = request.args.get('type')
+
+        services_collection = db.hospitality
+
+        query = {'guide_id': ObjectId(user_id)}
+        if service_type:
+            query['type'] = service_type
+
+        services = list(services_collection.find(query).sort('created_at', -1))
+
+        for s in services:
+            s['_id'] = str(s['_id'])
+            s['guide_id'] = str(s['guide_id'])
+
+        return jsonify({
+            'services': services,
+            'count': len(services)
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@local_guide_bp.route('/hospitality', methods=['POST'])
+@firebase_required
+def add_hospitality_service(current_user):
+    """
+    Add a new hospitality service (restaurant, stay, cultural event, local experience)
+    
+    POST /api/local-guide/hospitality
+    Body: {
+        "name": "Sunset Cafe",
+        "type": "restaurant",
+        "description": "Eco-friendly local cafe serving traditional meals",
+        "location": {
+            "name": "Mysore Main Street",
+            "coordinates": { "lat": 12.3052, "lng": 76.6552 }
+        },
+        "pricing": "₹200-500 per person",
+        "contact": "+91 9876543210",
+        "media": ["url1", "url2"]
+    }
+    """
+    try:
+        data = request.get_json()
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
+
+        required = ["name", "type", "description", "location"]
+        for field in required:
+            if not data.get(field):
+                return jsonify({'error': f'{field} is required'}), 400
+
+        service = {
+            "guide_id": ObjectId(user_id),
+            "name": data["name"],
+            "type": data["type"],  # restaurant / stay / experience / event
+            "description": data["description"],
+            "location": {
+                "name": data["location"].get("name", ""),
+                "type": "Point",
+                "coordinates": [
+                    data["location"].get("coordinates", {}).get("lng", 0),
+                    data["location"].get("coordinates", {}).get("lat", 0)
+                ]
+            },
+            "pricing": data.get("pricing", ""),
+            "contact": data.get("contact", ""),
+            "media": data.get("media", []),
+            "rating": 0.0,
+            "reviews": [],
+            "verified": False,
+            "active": True,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+
+        result = db.hospitality.insert_one(service)
+        service["_id"] = str(result.inserted_id)
+        service["guide_id"] = str(service["guide_id"])
+
+        return jsonify({
+            "message": "Hospitality service added successfully",
+            "service": service
+        }), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@local_guide_bp.route('/hospitality/<service_id>', methods=['PUT'])
+@firebase_required
+def update_hospitality_service(current_user, service_id):
+    """
+    Update hospitality service details
+    """
+    try:
+        data = request.get_json()
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
+
+        service = db.hospitality.find_one({
+            "_id": ObjectId(service_id),
+            "guide_id": ObjectId(user_id)
+        })
+
+        if not service:
+            return jsonify({'error': 'Service not found or unauthorized'}), 404
+
+        update_fields = {}
+        allowed = ["name", "description", "pricing", "contact", "media", "active"]
+        for field in allowed:
+            if field in data:
+                update_fields[field] = data[field]
+
+        if update_fields:
+            update_fields["updated_at"] = datetime.utcnow()
+            db.hospitality.update_one(
+                {"_id": ObjectId(service_id)},
+                {"$set": update_fields}
+            )
+
+        return jsonify({'message': 'Service updated successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@local_guide_bp.route('/hospitality/<service_id>', methods=['DELETE'])
+@firebase_required
+def delete_hospitality_service(current_user, service_id):
+    """
+    Soft delete hospitality service
+    """
+    try:
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
+        result = db.hospitality.update_one(
+            {"_id": ObjectId(service_id), "guide_id": ObjectId(user_id)},
+            {"$set": {"active": False, "deleted_at": datetime.utcnow()}}
+        )
+
+        if result.modified_count == 0:
+            return jsonify({'error': 'Service not found or unauthorized'}), 404
+
+        return jsonify({'message': 'Service deleted successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# ===========================
+# Hospitality Reviews
+# ===========================
+
+@local_guide_bp.route('/hospitality/reviews/<hospitality_id>', methods=['GET'])
+def get_hospitality_reviews(hospitality_id):
+    """
+    Get all reviews for a specific hospitality listing
+    
+    GET /api/local-guide/hospitality/reviews/<hospitality_id>
+    
+    Public endpoint - no authentication required for viewing reviews
+    """
+    try:
+        reviews_collection = db.hospitality_reviews
+        
+        # Get all reviews for this hospitality listing
+        reviews = list(reviews_collection.find({
+            'hospitality_id': ObjectId(hospitality_id)
+        }).sort('created_at', -1))
+        
+        # Enrich reviews with user data
+        for review in reviews:
+            review['_id'] = str(review['_id'])
+            review['hospitality_id'] = str(review['hospitality_id'])
+            review['user_id'] = str(review['user_id'])
+            
+            # Get reviewer info
+            user = db.users.find_one({'_id': ObjectId(review['user_id'])})
+            if user:
+                review['reviewer_name'] = user.get('name', 'Anonymous')
+                review['reviewer_avatar'] = user.get('avatar', '')
+            else:
+                review['reviewer_name'] = 'Anonymous'
+                review['reviewer_avatar'] = ''
+        
+        # Get hospitality service info
+        service = db.hospitality.find_one({'_id': ObjectId(hospitality_id)})
+        
+        return jsonify({
+            'reviews': reviews,
+            'count': len(reviews),
+            'average_rating': service.get('rating', 0) if service else 0,
+            'total_ratings': service.get('reviews_count', 0) if service else 0
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@local_guide_bp.route('/hospitality/reviews', methods=['POST'])
+@firebase_required
+def add_hospitality_review(current_user):
+    """
+    Add a review for a hospitality listing
+    
+    POST /api/local-guide/hospitality/reviews
+    Body: {
+        "hospitality_id": "...",
+        "rating": 5,
+        "review": "Amazing experience!"
+    }
+    
+    Auto-updates the hospitality listing's average rating and review count
+    """
+    try:
+        data = request.get_json()
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
+        
+        # Validate required fields
+        hospitality_id = data.get('hospitality_id')
+        rating = data.get('rating')
+        review_text = data.get('review', '')
+        
+        if not hospitality_id or not rating:
+            return jsonify({'error': 'hospitality_id and rating are required'}), 400
+        
+        if rating < 1 or rating > 5:
+            return jsonify({'error': 'Rating must be between 1 and 5'}), 400
+        
+        # Check if hospitality service exists
+        service = db.hospitality.find_one({'_id': ObjectId(hospitality_id)})
+        if not service:
+            return jsonify({'error': 'Hospitality service not found'}), 404
+        
+        # Check if user already reviewed this service
+        reviews_collection = db.hospitality_reviews
+        existing_review = reviews_collection.find_one({
+            'hospitality_id': ObjectId(hospitality_id),
+            'user_id': ObjectId(user_id)
+        })
+        
+        if existing_review:
+            return jsonify({'error': 'You have already reviewed this service'}), 400
+        
+        # Create review
+        review = {
+            'hospitality_id': ObjectId(hospitality_id),
+            'user_id': ObjectId(user_id),
+            'rating': rating,
+            'review': review_text,
+            'created_at': datetime.utcnow()
+        }
+        
+        result = reviews_collection.insert_one(review)
+        
+        # ===========================
+        # Auto-Update Rating Logic
+        # ===========================
+        
+        # Get all reviews for this service
+        all_reviews = list(reviews_collection.find({
+            'hospitality_id': ObjectId(hospitality_id)
+        }))
+        
+        # Calculate new average rating
+        total_ratings = len(all_reviews)
+        average_rating = sum(r['rating'] for r in all_reviews) / total_ratings if total_ratings > 0 else 0
+        average_rating = round(average_rating, 1)
+        
+        # Update hospitality service
+        db.hospitality.update_one(
+            {'_id': ObjectId(hospitality_id)},
+            {
+                '$set': {
+                    'rating': average_rating,
+                    'reviews_count': total_ratings,
+                    'updated_at': datetime.utcnow()
+                }
+            }
+        )
+        
+        return jsonify({
+            'message': 'Review added successfully',
+            'review_id': str(result.inserted_id),
+            'new_average_rating': average_rating,
+            'total_reviews': total_ratings
+        }), 201
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -455,7 +979,7 @@ def update_content(current_user, content_id):
 # ===========================
 
 @local_guide_bp.route('/analytics', methods=['GET'])
-@token_required
+@firebase_required
 def get_analytics(current_user):
     """
     Get guide analytics and performance metrics
@@ -463,7 +987,9 @@ def get_analytics(current_user):
     GET /api/local-guide/analytics?period=month
     """
     try:
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         period = request.args.get('period', 'month')
         
         # Get guide's quests
@@ -520,13 +1046,15 @@ def get_analytics(current_user):
 
 
 @local_guide_bp.route('/earnings', methods=['GET'])
-@token_required
+@firebase_required
 def get_earnings(current_user):
     """
     Get earnings history and payout status
     """
     try:
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         
         earnings = list(earnings_collection.find({
             'guide_id': ObjectId(user_id)
@@ -552,14 +1080,16 @@ def get_earnings(current_user):
 
 
 @local_guide_bp.route('/earnings/withdraw', methods=['POST'])
-@token_required
+@firebase_required
 def request_withdrawal(current_user):
     """
     Request earnings withdrawal
     """
     try:
         data = request.get_json()
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         amount = data.get('amount', 0)
         method = data.get('method', 'upi')  # upi, bank_transfer
         
@@ -590,13 +1120,15 @@ def request_withdrawal(current_user):
 # ===========================
 
 @local_guide_bp.route('/dashboard', methods=['GET'])
-@token_required
+@firebase_required
 def get_dashboard(current_user):
     """
     Get dashboard overview data
     """
     try:
-        user_id = current_user.get('user_id')
+        user_id = get_user_id_from_firebase(current_user)
+        if not user_id:
+            return jsonify({'error': 'User not found'}), 401
         
         # Get user info
         user = db.users.find_one({'_id': ObjectId(user_id)})

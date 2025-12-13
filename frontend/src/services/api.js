@@ -40,7 +40,7 @@ api.interceptors.response.use(
 
 // API endpoints
 export const questsApi = {
-    getAll: () => api.get('/api/quests'),
+    getAll: (params) => api.get('/api/quests/', { params }),
     getById: (id) => api.get(`/api/quests/${id}`),
     getByLocation: (location) => api.get(`/api/quests/location/${location}`),
     startQuest: (questId) => api.post(`/api/quests/${questId}/start`),

@@ -26,10 +26,16 @@ except Exception as e:
     db = None
     print(f"[DB] Failed to connect to MongoDB: {e}")
 
+local_content = db["local_content"]
+quest_completions = db["quest_completions"]
+earnings = db["earnings"]
+guide_analytics = db["guide_analytics"]
+
+
 # ==========================================================
 # 👥 USER & AUTH MODULE
 # ==========================================================
-users_collection = db["users"]
+users_collection = db["users_collection"]
 sessions_collection = db["sessions"]
 fcm_tokens_collection = db["fcm_tokens"]
 
