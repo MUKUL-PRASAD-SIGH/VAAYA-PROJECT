@@ -25,7 +25,6 @@ def get_conversations(current_user):
         
         # Sample conversations
         conversations = []
-        
         if conv_type == 'ai':
             conversations = [{
                 'id': 'ai-chatbot',
@@ -185,6 +184,12 @@ def get_nearby_travelers(current_user):
         return jsonify({'error': str(e)}), 500
 
 
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # ===========================
 # AI Chat History Endpoints
 # ===========================
@@ -282,6 +287,7 @@ def clear_ai_chat_history():
         clear_chat_history(DEMO_USER_ID)
         
         return jsonify({
+            'message': 'Chat history cleared'
         }), 200
         
     except Exception as e:
