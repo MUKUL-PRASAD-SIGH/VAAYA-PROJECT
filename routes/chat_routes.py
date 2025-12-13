@@ -132,7 +132,6 @@ def send_message(current_user):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-<<<<<<< HEAD
 
 # ===========================
 # Community Chat - User to User
@@ -179,7 +178,12 @@ def get_nearby_travelers(current_user):
         return jsonify({
             'travelers': travelers,
             'count': len(travelers)
-=======
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # ===========================
 # AI Chat History Endpoints
 # ===========================
@@ -278,12 +282,10 @@ def clear_ai_chat_history():
         
         return jsonify({
             'message': 'Chat history cleared'
->>>>>>> b3f4028c3b560f71e29a3e6dc58b3fea0ea11000
         }), 200
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-<<<<<<< HEAD
 
 
 @chat_bp.route('/conversations', methods=['POST'])
@@ -329,6 +331,3 @@ def create_conversation(current_user):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-=======
->>>>>>> b3f4028c3b560f71e29a3e6dc58b3fea0ea11000

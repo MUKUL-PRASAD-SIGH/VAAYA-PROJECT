@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react'
 import { localGuideApi } from '../../services/api'
+import { useLanguage } from '../../context/LanguageContext'
 import './ContentStudio.css'
 
-const CONTENT_TYPES = [
-    { id: 'post', label: 'Post', icon: '📝' },
-    { id: 'story', label: 'Story', icon: '📖' },
-    { id: 'tip', label: 'Local Tip', icon: '💡' },
-    { id: 'event', label: 'Event', icon: '🎉' }
-]
-
 function ContentStudio() {
+    const { t } = useLanguage()
+
+    // Content types with translations
+    const CONTENT_TYPES = [
+        { id: 'post', label: t('postType'), icon: '📝' },
+        { id: 'story', label: t('storyType'), icon: '📖' },
+        { id: 'tip', label: t('localTipType'), icon: '💡' },
+        { id: 'event', label: t('eventType'), icon: '🎉' }
+    ]
+
     const [activeTab, setActiveTab] = useState('create')
     const [contentType, setContentType] = useState('post')
     const [posts, setPosts] = useState([])
@@ -113,19 +117,19 @@ function ContentStudio() {
                     className={`studio-tab ${activeTab === 'create' ? 'active' : ''}`}
                     onClick={() => setActiveTab('create')}
                 >
-                    ✨ Create New
+                    ✨ {t('createNewContent')}
                 </button>
                 <button
                     className={`studio-tab ${activeTab === 'posts' ? 'active' : ''}`}
                     onClick={() => setActiveTab('posts')}
                 >
-                    📚 My Content
+                    📚 {t('myContentTab')}
                 </button>
                 <button
                     className={`studio-tab ${activeTab === 'drafts' ? 'active' : ''}`}
                     onClick={() => setActiveTab('drafts')}
                 >
-                    📝 Drafts
+                    📝 {t('draftsTab')}
                 </button>
             </div>
 
@@ -133,7 +137,7 @@ function ContentStudio() {
                 <div className="create-section">
                     {/* Content Type Selection */}
                     <div className="type-selection">
-                        <h3>What would you like to create?</h3>
+                        <h3>{t('whatToCreate')}</h3>
                         <div className="type-options">
                             {CONTENT_TYPES.map(type => (
                                 <button

@@ -159,4 +159,61 @@ export const hospitalityApi = {
     getHospitalityScoreboard: () => api.get('/api/hospitality/scoreboard'),
 }
 
+// Geo-Fenced Posts/Reels API endpoints
+export const postsApi = {
+    // Create a new post with media
+    createPost: (formData) => api.post('/api/posts', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+
+    // Get posts within user's geographic radius
+    getNearbyPosts: (lat, lng, radius = 10, limit = 50) =>
+        api.get('/api/posts/nearby', { params: { lat, lng, radius, limit } }),
+
+    // Get a single post by ID
+    getPost: (id) => api.get(`/api/posts/${id}`),
+
+    // Get current user's posts
+    getMyPosts: () => api.get('/api/posts/my'),
+
+    // Like/unlike a post
+    likePost: (id) => api.post(`/api/posts/${id}/like`),
+
+    // Record a view on a post
+    viewPost: (id) => api.post(`/api/posts/${id}/view`),
+
+    // Delete a post
+    deletePost: (id) => api.delete(`/api/posts/${id}`),
+
+    // Get media URL
+    getMediaUrl: (fileId) => `${API_BASE_URL}/api/posts/media/${fileId}`,
+
+    // Comments
+    getComments: (postId, limit = 50) =>
+        api.get(`/api/posts/${postId}/comments`, { params: { limit } }),
+    addComment: (postId, text) =>
+        api.post(`/api/posts/${postId}/comments`, { text }),
+    deleteComment: (postId, commentId) =>
+        api.delete(`/api/posts/${postId}/comments/${commentId}`),
+    likeComment: (postId, commentId) =>
+        api.post(`/api/posts/${postId}/comments/${commentId}/like`),
+
+    // Trending & Discovery
+    getTrendingPosts: (lat, lng, radius = 25, limit = 20) =>
+        api.get('/api/posts/trending', { params: { lat, lng, radius, limit } }),
+    searchByHashtag: (hashtag, lat, lng, radius = 50) =>
+        api.get(`/api/posts/hashtag/${hashtag}`, { params: { lat, lng, radius } }),
+    getTrendingHashtags: (lat, lng, radius = 25, limit = 10) =>
+        api.get('/api/posts/hashtags/trending', { params: { lat, lng, radius, limit } }),
+
+    // Stories
+    getNearbyStories: (lat, lng, radius = 10, limit = 50) =>
+        api.get('/api/posts/stories', { params: { lat, lng, radius, limit } }),
+
+    // Share
+    sharePost: (id) => api.post(`/api/posts/${id}/share`),
+}
+
 export default api
+
+

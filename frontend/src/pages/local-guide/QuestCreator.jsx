@@ -1,23 +1,28 @@
 import { useState, useEffect } from 'react'
 import { localGuideApi } from '../../services/api'
+import { useLanguage } from '../../context/LanguageContext'
 import './QuestCreator.css'
 
-const QUEST_TYPES = [
-    { id: 'photo', label: 'Photo Quest', description: 'Travelers capture specific locations or moments' },
-    { id: 'visit', label: 'Visit Quest', description: 'Travelers visit and check-in at locations' },
-    { id: 'food', label: 'Food Quest', description: 'Travelers try local cuisine and restaurants' },
-    { id: 'culture', label: 'Culture Quest', description: 'Travelers experience local traditions' },
-    { id: 'adventure', label: 'Adventure Quest', description: 'Travelers complete outdoor activities' }
-]
-
-const DIFFICULTY_LEVELS = [
-    { id: 'easy', label: 'Easy', color: '#4ade80', points: '50-100' },
-    { id: 'medium', label: 'Medium', color: '#fbbf24', points: '100-200' },
-    { id: 'hard', label: 'Hard', color: '#f97316', points: '200-500' },
-    { id: 'expert', label: 'Expert', color: '#ef4444', points: '500+' }
-]
-
 function QuestCreator() {
+    const { t } = useLanguage()
+
+    // Quest types with translations
+    const QUEST_TYPES = [
+        { id: 'photo', label: t('photoQuestLabel'), description: t('photoQuestDesc') },
+        { id: 'visit', label: t('visitQuestLabel'), description: t('explorationQuestDesc') },
+        { id: 'food', label: t('foodQuestLabel'), description: t('culturalQuestDesc') },
+        { id: 'culture', label: t('cultureQuestLabel'), description: t('culturalQuestDesc') },
+        { id: 'adventure', label: t('adventureQuestLabel'), description: t('explorationQuestDesc') }
+    ]
+
+    // Difficulty levels with translations
+    const DIFFICULTY_LEVELS = [
+        { id: 'easy', label: t('easy'), color: '#4ade80', points: '50-100' },
+        { id: 'medium', label: t('medium'), color: '#fbbf24', points: '100-200' },
+        { id: 'hard', label: t('hard'), color: '#f97316', points: '200-500' },
+        { id: 'expert', label: t('expert'), color: '#ef4444', points: '500+' }
+    ]
+
     const [step, setStep] = useState(1)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -136,11 +141,11 @@ function QuestCreator() {
             {/* Quest Creation Form */}
             <div className="creator-section">
                 <div className="section-header">
-                    <h2>Create New Quest</h2>
+                    <h2>{t('createNewQuest')}</h2>
                     <div className="step-indicator">
-                        <span className={`step ${step >= 1 ? 'active' : ''}`}>1. Type</span>
-                        <span className={`step ${step >= 2 ? 'active' : ''}`}>2. Details</span>
-                        <span className={`step ${step >= 3 ? 'active' : ''}`}>3. Review</span>
+                        <span className={`step ${step >= 1 ? 'active' : ''}`}>1. {t('selectType')}</span>
+                        <span className={`step ${step >= 2 ? 'active' : ''}`}>2. {t('details')}</span>
+                        <span className={`step ${step >= 3 ? 'active' : ''}`}>3. {t('review')}</span>
                     </div>
                 </div>
 
@@ -162,19 +167,19 @@ function QuestCreator() {
                 {step === 2 && (
                     <div className="quest-form">
                         <div className="form-group">
-                            <label>Quest Title</label>
+                            <label>{t('questTitleLabel')}</label>
                             <input
                                 type="text"
-                                placeholder="Enter an engaging title..."
+                                placeholder={t('enterEngagingTitle')}
                                 value={quest.title}
                                 onChange={(e) => handleInputChange('title', e.target.value)}
                             />
                         </div>
 
                         <div className="form-group">
-                            <label>Description</label>
+                            <label>{t('description')}</label>
                             <textarea
-                                placeholder="Describe what travelers need to do..."
+                                placeholder={t('describeQuestToDo')}
                                 rows={4}
                                 value={quest.description}
                                 onChange={(e) => handleInputChange('description', e.target.value)}

@@ -1,0 +1,547 @@
+/* GeoReels - Full-screen Reels-style Feed */
+
+.geo-reels-container {
+    height: 100vh;
+    width: 100%;
+    background: #000;
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+}
+
+/* Header */
+.geo-reels-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-left h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.radius-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    backdrop-filter: blur(10px);
+}
+
+.radius-select {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+}
+
+.radius-select option {
+    background: #1a1a1a;
+    color: #fff;
+}
+
+/* Loading State */
+.geo-reels-loading {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+    gap: 1rem;
+}
+
+.geo-reels-loading .spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.location-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+}
+
+/* Location Error */
+.location-error-banner {
+    position: absolute;
+    top: 70px;
+    left: 1rem;
+    right: 1rem;
+    z-index: 99;
+    background: rgba(239, 68, 68, 0.9);
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    backdrop-filter: blur(10px);
+}
+
+.location-error-banner button {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: #fff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+/* No Posts State */
+.no-posts-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.no-posts-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.no-posts-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.no-posts-container p {
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 1.5rem;
+}
+
+.create-first-post-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    color: #fff;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.create-first-post-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+}
+
+/* Reels Wrapper */
+.reels-wrapper {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.reel-item {
+    transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* Navigation Arrows */
+.nav-arrow {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s;
+}
+
+.nav-arrow:hover:not(.disabled) {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(-50%) scale(1.1);
+}
+
+.nav-arrow.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.nav-arrow.up {
+    top: 80px;
+}
+
+.nav-arrow.down {
+    bottom: 100px;
+}
+
+/* Post Counter */
+.post-counter {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    backdrop-filter: blur(10px);
+}
+
+/* Reel Card */
+.reel-card {
+    height: 100vh;
+    width: 100%;
+    position: relative;
+    display: flex;
+}
+
+/* Background Media */
+.reel-background {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.reel-video,
+.reel-image,
+.reel-placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.reel-placeholder {
+    background-size: cover;
+    background-position: center;
+    filter: blur(2px) brightness(0.7);
+}
+
+.reel-gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top,
+            rgba(0, 0, 0, 0.9) 0%,
+            rgba(0, 0, 0, 0.3) 30%,
+            transparent 50%,
+            rgba(0, 0, 0, 0.3) 70%,
+            rgba(0, 0, 0, 0.7) 100%);
+}
+
+/* Content Overlay */
+.reel-content {
+    position: absolute;
+    bottom: 120px;
+    left: 0;
+    right: 80px;
+    z-index: 10;
+    padding: 1.5rem;
+}
+
+/* Post Type Badge */
+.post-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    text-transform: capitalize;
+    backdrop-filter: blur(10px);
+    margin-bottom: 1rem;
+}
+
+/* User Info */
+.reel-user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.user-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: 2px solid #fff;
+    overflow: hidden;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.post-time {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Caption */
+.reel-caption {
+    margin-bottom: 1rem;
+}
+
+.reel-caption p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Location */
+.reel-location {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.distance-tag {
+    background: rgba(168, 85, 247, 0.3);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+/* Side Actions */
+.reel-actions {
+    position: absolute;
+    right: 1rem;
+    bottom: 150px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.action-btn:hover {
+    transform: scale(1.1);
+}
+
+.action-btn span {
+    font-size: 0.75rem;
+}
+
+.action-btn.like-btn.liked {
+    color: #ef4444;
+}
+
+.action-btn.like-btn.liked svg {
+    animation: heartBeat 0.3s ease;
+}
+
+@keyframes heartBeat {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3);
+    }
+}
+
+/* Create Post FAB */
+.create-post-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 100;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.5);
+    transition: all 0.3s;
+}
+
+.create-post-fab:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 6px 30px rgba(168, 85, 247, 0.6);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .geo-reels-header {
+        padding: 1rem;
+    }
+
+    .header-left h1 {
+        font-size: 1.25rem;
+    }
+
+    .reel-content {
+        right: 70px;
+        padding: 1rem;
+        bottom: 100px;
+    }
+
+    .reel-actions {
+        right: 0.75rem;
+        bottom: 130px;
+        gap: 1rem;
+    }
+
+    .action-btn svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    .nav-arrow {
+        width: 40px;
+        height: 40px;
+    }
+
+    .create-post-fab {
+        width: 52px;
+        height: 52px;
+        bottom: 1.5rem;
+        right: 1.5rem;
+    }
+}
+
+/* Trending Hashtags Bar */
+.trending-hashtags-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    overflow: hidden;
+}
+
+.trending-hashtags-bar>svg {
+    flex-shrink: 0;
+    color: #a855f7;
+}
+
+.hashtags-scroll {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.hashtags-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.hashtag-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(168, 85, 247, 0.2);
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.hashtag-chip:hover {
+    background: rgba(168, 85, 247, 0.4);
+}
+
+.hashtag-count {
+    font-size: 0.7rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.1rem 0.35rem;
+    border-radius: 8px;
+    margin-left: 0.25rem;
+}

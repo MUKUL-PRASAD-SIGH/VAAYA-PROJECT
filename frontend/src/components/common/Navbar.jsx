@@ -19,6 +19,7 @@ export default function Navbar() {
     // Links for travelers
     const travelerLinks = [
         { path: '/dashboard', label: 'Dashboard' },
+        { path: '/reels', label: 'Reels' },
         { path: '/quests', label: 'Quests' },
         { path: '/trips', label: 'Trips' },
         { path: '/heatmap', label: 'Heatmap' },

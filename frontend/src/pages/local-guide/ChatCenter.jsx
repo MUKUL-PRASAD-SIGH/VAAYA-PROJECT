@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { chatApi } from '../../services/api'
 import { io } from 'socket.io-client'
+import { useLanguage } from '../../context/LanguageContext'
 import './ChatCenter.css'
 
 function ChatCenter() {
+    const { t } = useLanguage()
     const [conversations, setConversations] = useState([])
     const [selectedConversation, setSelectedConversation] = useState(null)
     const [messages, setMessages] = useState([])
@@ -120,14 +122,14 @@ function ChatCenter() {
             {/* Conversations List */}
             <div className="conversations-panel">
                 <div className="panel-header">
-                    <h3>Messages</h3>
+                    <h3>{t('messages')}</h3>
                     <span className="message-count">{conversations.reduce((acc, c) => acc + c.unread, 0)}</span>
                 </div>
 
                 <div className="search-box">
                     <input
                         type="text"
-                        placeholder="Search conversations..."
+                        placeholder={t('searchConversations')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -199,29 +201,29 @@ function ChatCenter() {
                         </div>
 
                         <div className="message-input-container">
-                            <button className="input-action" title="Attach File">+</button>
+                            <button className="input-action" title={t('attachFile')}>+</button>
                             <input
                                 type="text"
-                                placeholder="Type a message..."
+                                placeholder={t('typeAMessage')}
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
                                 onKeyPress={handleKeyPress}
                             />
                             <button className="send-btn" onClick={handleSendMessage}>
-                                Send
+                                {t('sendMessage')}
                             </button>
                         </div>
                     </>
                 ) : (
                     <div className="no-chat-selected">
-                        <p>Select a conversation to start messaging</p>
+                        <p>{t('selectConversation')}</p>
                     </div>
                 )}
             </div>
 
             {/* Quick Responses Panel */}
             <div className="quick-responses-panel">
-                <h4>Quick Responses</h4>
+                <h4>{t('quickResponses')}</h4>
                 <div className="quick-responses">
                     <button className="quick-response" onClick={() => handleQuickResponse("Hello! How can I help you today?")}>
                         Hello! How can I help you today?
@@ -240,16 +242,16 @@ function ChatCenter() {
                     </button>
                 </div>
 
-                <h4>Travel Tips</h4>
+                <h4>{t('travelTips')}</h4>
                 <div className="tips-list">
                     <div className="tip-item">
-                        <p>Best visiting hours: 9 AM - 11 AM</p>
+                        <p>{t('bestVisitingHours')}</p>
                     </div>
                     <div className="tip-item">
-                        <p>Local restaurants close by 10 PM</p>
+                        <p>{t('localRestaurantsClose')}</p>
                     </div>
                     <div className="tip-item">
-                        <p>Book cabs in advance for tourist spots</p>
+                        <p>{t('bookCabsAdvance')}</p>
                     </div>
                 </div>
             </div>
