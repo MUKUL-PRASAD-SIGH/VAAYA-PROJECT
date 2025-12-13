@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './context/ThemeContext'
 import { AccentColorProvider } from './context/AccentColorContext'
 import { AuthProvider } from './context/AuthContext'
+import { LanguageProvider } from './context/LanguageContext'
 import Navbar from './components/common/Navbar'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import Dashboard from './pages/Dashboard'
@@ -9,6 +10,7 @@ import Trips from './pages/Trips'
 import Quests from './pages/Quests'
 import Heatmap from './pages/Heatmap'
 import Chat from './pages/Chat'
+import GeoReels from './pages/GeoReels'
 import { Profile, Settings, Personalisation } from './pages/user'
 import { Login, Register, ForgotPassword, VerifyEmail } from './pages/auth'
 import RoleSelection from './pages/RoleSelection'
@@ -97,6 +99,13 @@ function AppContent() {
                         <ExperiencesMarketplace />
                     </ProtectedRoute>
                 } />
+
+                {/* Geo-Fenced Reels */}
+                <Route path="/reels" element={
+                    <ProtectedRoute>
+                        <GeoReels />
+                    </ProtectedRoute>
+                } />
             </Routes>
         </div>
     )
@@ -107,7 +116,9 @@ function App() {
         <AuthProvider>
             <ThemeProvider>
                 <AccentColorProvider>
-                    <AppContent />
+                    <LanguageProvider>
+                        <AppContent />
+                    </LanguageProvider>
                 </AccentColorProvider>
             </ThemeProvider>
         </AuthProvider>

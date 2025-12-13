@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { hospitalityApi } from '../../services/api'
+import { useLanguage } from '../../context/LanguageContext'
 import {
     Plus,
     Calendar,
@@ -56,6 +57,7 @@ const BADGES = {
 }
 
 function HospitalityTab() {
+    const { t } = useLanguage()
     const [offerings, setOfferings] = useState([])
     const [bookings, setBookings] = useState([])
     const [reviews, setReviews] = useState([])
@@ -173,10 +175,10 @@ function HospitalityTab() {
                 <div className="hero-content">
                     <div className="hero-badge">
                         <Sparkles size={14} />
-                        <span>Hospitality Hub</span>
+                        <span>{t('hospitality')}</span>
                     </div>
-                    <h1>Your Hosting Journey</h1>
-                    <p>Create unforgettable experiences for travelers worldwide</p>
+                    <h1>{t('myOfferings')}</h1>
+                    <p>{t('hospitalitySubtitle')}</p>
                 </div>
 
                 {/* Score Card */}
@@ -215,7 +217,7 @@ function HospitalityTab() {
                     </div>
                     <div className="stat-data">
                         <span className="stat-num">₹{(stats.this_month_earnings || 0).toLocaleString()}</span>
-                        <span className="stat-lbl">This Month</span>
+                        <span className="stat-lbl">{t('thisMonth')}</span>
                     </div>
                 </div>
                 <div className="stat-pill">
@@ -224,7 +226,7 @@ function HospitalityTab() {
                     </div>
                     <div className="stat-data">
                         <span className="stat-num">{stats.total_bookings || 0}</span>
-                        <span className="stat-lbl">Total Guests</span>
+                        <span className="stat-lbl">{t('totalBookings')}</span>
                     </div>
                 </div>
                 <div className="stat-pill">
@@ -233,7 +235,7 @@ function HospitalityTab() {
                     </div>
                     <div className="stat-data">
                         <span className="stat-num">{stats.avg_rating || 0}</span>
-                        <span className="stat-lbl">Avg Rating</span>
+                        <span className="stat-lbl">{t('averageRating')}</span>
                     </div>
                 </div>
             </div>
@@ -246,7 +248,7 @@ function HospitalityTab() {
                         onClick={() => setActiveTab('offerings')}
                     >
                         <Zap size={18} />
-                        <span>My Offerings</span>
+                        <span>{t('myOfferings')}</span>
                         {pendingCount > 0 && (
                             <span className="pulse-badge">{pendingCount}</span>
                         )}
@@ -256,7 +258,7 @@ function HospitalityTab() {
                         onClick={() => setActiveTab('reviews')}
                     >
                         <MessageCircle size={18} />
-                        <span>Reviews</span>
+                        <span>{t('reviews')}</span>
                     </button>
                     <div className="tab-indicator" style={{
                         transform: `translateX(${activeTab === 'offerings' ? '0' : '100%'})`
@@ -265,7 +267,7 @@ function HospitalityTab() {
 
                 <button className="add-offering-btn" onClick={() => setShowCreateModal(true)}>
                     <Plus size={20} />
-                    <span>New Offering</span>
+                    <span>{t('createOffering')}</span>
                 </button>
             </div>
 

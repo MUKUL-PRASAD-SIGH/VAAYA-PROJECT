@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
+import { useLanguage } from '../../context/LanguageContext'
 import { localGuideApi } from '../../services/api'
 import {
     LayoutDashboard,
@@ -21,7 +22,8 @@ import {
     MapPin,
     DollarSign,
     Home,
-    Award
+    Award,
+    Languages
 } from 'lucide-react'
 import QuestCreator from './QuestCreator'
 import TravelerMonitor from './TravelerMonitor'
@@ -32,22 +34,42 @@ import Profile from './Profile'
 import HospitalityTab from './HospitalityTab'
 import './LocalGuideDashboard.css'
 
-const TABS = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'quests', label: 'Quest Creator', icon: Map },
-    { id: 'travelers', label: 'Travellers', icon: Users },
-    { id: 'content', label: 'Content Studio', icon: Camera },
-    { id: 'hospitality', label: 'Hospitality', icon: Home },
-    { id: 'chat', label: 'Chat Center', icon: MessageSquare },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-    { id: 'profile', label: 'Profile', icon: User }
-]
-
 function LocalGuideDashboard() {
     const [activeTab, setActiveTab] = useState('overview')
     const [dashboardData, setDashboardData] = useState(null)
     const [loading, setLoading] = useState(true)
     const { themeColors } = useTheme()
+    const { t, language, toggleLanguage, enterDashboardScope, exitDashboardScope } = useLanguage()
+
+    // Define TABS inside component to use translations
+    const TABS = [
+        { id: 'overview', label: t('overview'), icon: LayoutDashboard },
+        { id: 'quests', label: t('questCreator'), icon: Map },
+        { id: 'travelers', label: t('travelers'), icon: Users },
+        { id: 'content', label: t('contentStudio'), icon: Camera },
+        { id: 'hospitality', label: t('hospitality'), icon: Home },
+        { id: 'chat', label: t('chatCenter'), icon: MessageSquare },
+        { id: 'analytics', label: t('analytics'), icon: TrendingUp },
+        { id: 'profile', label: t('profile'), icon: User }
+    ]
+
+    // Subtitles map for each tab
+    const subtitles = {
+        overview: t('overviewSubtitle'),
+        quests: t('questsSubtitle'),
+        travelers: t('travelersSubtitle'),
+        content: t('contentSubtitle'),
+        hospitality: t('hospitalitySubtitle'),
+        chat: t('chatSubtitle'),
+        analytics: t('analyticsSubtitle'),
+        profile: t('profileSubtitle')
+    }
+
+    // Enter dashboard scope when component mounts, exit when unmounts
+    useEffect(() => {
+        enterDashboardScope()
+        return () => exitDashboardScope()
+    }, [enterDashboardScope, exitDashboardScope])
 
     useEffect(() => {
         loadDashboardData()
@@ -97,14 +119,12 @@ function LocalGuideDashboard() {
                     <div className="guide-avatar">
                         <User className="avatar-icon" size={32} />
                     </div>
-                    <h2>{dashboardData?.guide?.name || 'Local Guide'}</h2>
-                    <span className="guide-badge">
-                        {dashboardData?.guide?.verified ? (
-                            <><CheckCircle size={14} /> Verified</>
-                        ) : (
-                            <><Info size={14} /> Pending</>
-                        )}
-                    </span>
+                    <h2>{dashboardData?.guide?.name || t('localGuide')}</h2>
+                    {dashboardData?.guide?.verified && (
+                        <span className="guide-badge">
+                            <CheckCircle size={14} /> {t('verified')}
+                        </span>
+                    )}
                 </div>
 
                 <nav className="sidebar-nav">
@@ -125,7 +145,7 @@ function LocalGuideDashboard() {
 
                 <div className="sidebar-footer">
                     <div className="earnings-preview">
-                        <span className="earnings-label">This Month</span>
+                        <span className="earnings-label">{t('thisMonth')}</span>
                         <span className="earnings-amount">₹{earnings.toLocaleString()}</span>
                     </div>
                 </div>
@@ -135,18 +155,20 @@ function LocalGuideDashboard() {
             <main className="dashboard-main">
                 <header className="dashboard-header">
                     <div className="header-left">
-                        <h1>{TABS.find(t => t.id === activeTab)?.label}</h1>
-                        <p className="header-subtitle">
-                            {activeTab === 'overview' && 'Welcome back! Here\'s your guide activity summary.'}
-                            {activeTab === 'quests' && 'Create and manage quests for travelers.'}
-                            {activeTab === 'travelers' && 'Monitor and assist your connected travelers.'}
-                            {activeTab === 'content' && 'Share your local knowledge and experiences.'}
-                            {activeTab === 'chat' && 'Communicate with travelers and support.'}
-                            {activeTab === 'analytics' && 'Track your performance and earnings.'}
-                            {activeTab === 'profile' && 'Manage your guide profile and settings.'}
-                        </p>
+                        <h1>{TABS.find(tab => tab.id === activeTab)?.label}</h1>
+                        <p className="header-subtitle">{subtitles[activeTab]}</p>
                     </div>
                     <div className="header-right">
+                        {/* Language Toggle Switch */}
+                        <div
+                            className={`language-toggle-btn ${language === 'kn' ? 'kannada-active' : ''}`}
+                            onClick={toggleLanguage}
+                            title={language === 'en' ? 'Switch to Kannada' : 'Switch to English'}
+                        >
+                            <span className={`lang-option ${language === 'en' ? 'active' : ''}`}>EN</span>
+                            <span className={`lang-option ${language === 'kn' ? 'active' : ''}`}>ಕನ್ನಡ</span>
+                        </div>
+
                         <button className="notification-btn">
                             <Bell size={24} />
                             {dashboardData?.stats?.pending_verifications > 0 && (
@@ -168,43 +190,46 @@ function LocalGuideDashboard() {
 
 
 
+
 function OverviewTab({ data, loading, onRefresh, setActiveTab }) {
+    const { t } = useLanguage()
+
     const stats = data ? [
         {
-            label: 'Active Quests',
+            label: t('activeQuests'),
             value: data.stats?.active_quests || 0,
-            trend: 'Your created quests',
+            trend: t('yourCreatedQuests'),
             color: '#667eea',
             icon: Target
         },
         {
-            label: 'Travelers Helped',
+            label: t('travelersHelped'),
             value: data.stats?.total_completions || 0,
-            trend: 'Quest completions',
+            trend: t('questCompletions'),
             color: '#22d3ee',
             icon: Users
         },
         {
-            label: 'Content Posts',
+            label: t('contentPosts'),
             value: data.stats?.content_posts || 0,
-            trend: 'Stories & tips',
+            trend: t('storiesAndTips'),
             color: '#c084fc',
             icon: Grid
         },
         {
-            label: 'Rating',
+            label: t('rating'),
             value: data.guide?.rating?.toFixed(1) || '0.0',
-            trend: 'Your reputation',
+            trend: t('yourReputation'),
             color: '#fbbf24',
             icon: Star
         }
     ] : []
 
     const recentActivity = [
-        { type: 'quest', message: 'New traveler joined your quest', time: '2 hours ago', icon: MapPin },
-        { type: 'chat', message: 'Message from a traveler', time: '3 hours ago', icon: MessageSquare },
-        { type: 'content', message: 'Your post got engagement', time: '5 hours ago', icon: Camera },
-        { type: 'earnings', message: 'Earned points for completed quest', time: '1 day ago', icon: DollarSign }
+        { type: 'quest', message: t('newTravelerJoined'), time: `2 ${t('hoursAgo')}`, icon: MapPin },
+        { type: 'chat', message: t('messageFromTraveler'), time: `3 ${t('hoursAgo')}`, icon: MessageSquare },
+        { type: 'content', message: t('postGotEngagement'), time: `5 ${t('hoursAgo')}`, icon: Camera },
+        { type: 'earnings', message: t('earnedPoints'), time: `1 ${t('dayAgo')}`, icon: DollarSign }
     ]
 
     // Quick action handlers with navigation
@@ -225,7 +250,7 @@ function OverviewTab({ data, loading, onRefresh, setActiveTab }) {
             <div className="overview-tab loading">
                 <div className="loading-spinner">
                     <RefreshCw className="animate-spin" size={32} />
-                    <span>Loading...</span>
+                    <span>{t('loading')}</span>
                 </div>
             </div>
         )
@@ -253,26 +278,26 @@ function OverviewTab({ data, loading, onRefresh, setActiveTab }) {
             {data?.stats?.pending_verifications > 0 && (
                 <div className="pending-alert">
                     <Info size={20} />
-                    <span>You have {data.stats.pending_verifications} pending quest verifications</span>
+                    <span>{t('youHave')} {data.stats.pending_verifications} {t('pendingVerifications')}</span>
                 </div>
             )}
 
             {/* Quick Actions with Animated Hot Icons */}
             <div className="quick-actions">
-                <h3>Quick Actions</h3>
+                <h3>{t('quickActions')}</h3>
                 <div className="actions-grid">
                     <button className="action-card action-quest" onClick={handleCreateQuest}>
                         <div className="action-icon-wrapper pulse">
                             <PlusCircle size={24} />
                         </div>
-                        <span>Create Quest</span>
+                        <span>{t('createQuest')}</span>
                     </button>
                     <button className="action-card action-post hot" onClick={handleNewPost}>
                         <div className="action-icon-wrapper bounce">
                             <Edit3 size={24} />
                             <span className="hot-badge">🔥</span>
                         </div>
-                        <span>New Post</span>
+                        <span>{t('newPost')}</span>
                     </button>
                     <button className="action-card action-chat" onClick={handleReplyMessages}>
                         <div className="action-icon-wrapper shake">
@@ -281,20 +306,20 @@ function OverviewTab({ data, loading, onRefresh, setActiveTab }) {
                                 <span className="unread-count">{data.stats.unread_messages}</span>
                             )}
                         </div>
-                        <span>Reply to Messages</span>
+                        <span>{t('replyToMessages')}</span>
                     </button>
                     <button className="action-card" onClick={onRefresh}>
                         <div className="action-icon-wrapper">
                             <RefreshCw size={24} />
                         </div>
-                        <span>Refresh Data</span>
+                        <span>{t('refreshData')}</span>
                     </button>
                 </div>
             </div>
 
             {/* Recent Activity */}
             <div className="recent-activity">
-                <h3>Recent Activity</h3>
+                <h3>{t('recentActivity')}</h3>
                 <div className="activity-list">
                     {recentActivity.map((activity, index) => (
                         <div key={index} className="activity-item">

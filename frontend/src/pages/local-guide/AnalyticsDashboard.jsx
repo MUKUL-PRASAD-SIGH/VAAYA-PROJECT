@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { localGuideApi } from '../../services/api'
+import { useLanguage } from '../../context/LanguageContext'
 import './AnalyticsDashboard.css'
 
 function AnalyticsDashboard() {
+    const { t } = useLanguage()
     const [timeRange, setTimeRange] = useState('month')
     const [loading, setLoading] = useState(true)
     const [stats, setStats] = useState({
@@ -108,9 +110,9 @@ function AnalyticsDashboard() {
                         </span>
                     </div>
                     <div className="stat-value">₹{stats.thisMonth.toLocaleString()}</div>
-                    <div className="stat-label">This Month's Earnings</div>
+                    <div className="stat-label">{t('monthlyEarnings')}</div>
                     <div className="stat-comparison">
-                        vs ₹{stats.lastMonth.toLocaleString()} last month
+                        vs ₹{stats.lastMonth.toLocaleString()} {t('lastMonth')}
                     </div>
                 </div>
 
@@ -119,7 +121,7 @@ function AnalyticsDashboard() {
                         <span className="stat-icon">👥</span>
                     </div>
                     <div className="stat-value">{stats.totalTravelers}</div>
-                    <div className="stat-label">Total Travelers</div>
+                    <div className="stat-label">{t('travelersHelped')}</div>
                 </div>
 
                 <div className="stat-card">
@@ -127,7 +129,7 @@ function AnalyticsDashboard() {
                         <span className="stat-icon">🎯</span>
                     </div>
                     <div className="stat-value">{stats.completedQuests}</div>
-                    <div className="stat-label">Quests Completed</div>
+                    <div className="stat-label">{t('completed')}</div>
                 </div>
 
                 <div className="stat-card">
@@ -135,7 +137,7 @@ function AnalyticsDashboard() {
                         <span className="stat-icon">⭐</span>
                     </div>
                     <div className="stat-value">{stats.rating}</div>
-                    <div className="stat-label">{stats.reviews} Reviews</div>
+                    <div className="stat-label">{stats.reviews} {t('reviews')}</div>
                 </div>
             </div>
 
@@ -143,11 +145,11 @@ function AnalyticsDashboard() {
                 {/* Earnings Chart */}
                 <div className="chart-section">
                     <div className="section-header">
-                        <h3>Earnings Overview</h3>
+                        <h3>{t('earningsOverview')}</h3>
                         <div className="chart-legend">
                             <span className="legend-item">
                                 <span className="legend-dot"></span>
-                                Daily Earnings
+                                {t('dailyEarnings')}
                             </span>
                         </div>
                     </div>
@@ -171,7 +173,7 @@ function AnalyticsDashboard() {
                 {/* Top Performing Quests */}
                 <div className="quests-section">
                     <div className="section-header">
-                        <h3>Top Performing Quests</h3>
+                        <h3>{t('topPerformingQuests')}</h3>
                     </div>
                     <div className="quests-list">
                         {topQuests.map((quest, index) => (

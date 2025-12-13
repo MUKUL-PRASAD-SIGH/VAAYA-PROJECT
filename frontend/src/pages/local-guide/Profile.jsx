@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { useLanguage } from '../../context/LanguageContext'
 import { userApi, localGuideApi } from '../../services/api'
 import './Profile.css'
 
 function Profile() {
+    const { t } = useLanguage()
     const { currentUser, logout } = useAuth()
     const { themeColors } = useTheme()
     const [isEditing, setIsEditing] = useState(false)
@@ -154,7 +156,7 @@ function Profile() {
                             className="edit-profile-btn"
                             onClick={() => setIsEditing(!isEditing)}
                         >
-                            {isEditing ? '✕ Cancel' : '✏️ Edit Profile'}
+                            {isEditing ? '✕ Cancel' : `✏️ ${t('editProfile')}`}
                         </button>
                         <button className="share-profile-btn">🔗 Share</button>
                     </div>
@@ -192,7 +194,7 @@ function Profile() {
 
                     {/* Languages */}
                     <div className="profile-card">
-                        <h3>Languages</h3>
+                        <h3>{t('languages')}</h3>
                         <div className="language-tags">
                             {profileData.languages.map((lang, index) => (
                                 <span key={index} className="language-tag">🗣️ {lang}</span>
@@ -225,7 +227,7 @@ function Profile() {
                 <div className="profile-sidebar">
                     {/* Contact Info */}
                     <div className="profile-card contact-card">
-                        <h3>Contact Information</h3>
+                        <h3>{t('personalInfo')}</h3>
                         <div className="contact-item">
                             <span className="contact-icon">📧</span>
                             {isEditing ? (
@@ -330,7 +332,7 @@ function Profile() {
                             Cancel
                         </button>
                         <button className="save-btn" onClick={handleSaveProfile}>
-                            💾 Save Changes
+                            {t('saveChanges')}
                         </button>
                     </div>
                 </div>

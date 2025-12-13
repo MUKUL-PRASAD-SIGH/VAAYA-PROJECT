@@ -184,6 +184,7 @@ def get_nearby_travelers(current_user):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 # ===========================
 # AI Chat History Endpoints
 # ===========================
@@ -281,8 +282,6 @@ def clear_ai_chat_history():
         clear_chat_history(DEMO_USER_ID)
         
         return jsonify({
-            'message': 'Chat history cleared'
-
         }), 200
         
     except Exception as e:
@@ -333,6 +332,4 @@ def create_conversation(current_user):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-
 

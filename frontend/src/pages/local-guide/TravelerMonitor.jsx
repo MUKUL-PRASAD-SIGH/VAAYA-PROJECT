@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { localGuideApi } from '../../services/api'
+import { useLanguage } from '../../context/LanguageContext'
 import './TravelerMonitor.css'
 
 function TravelerMonitor() {
+    const { t } = useLanguage()
     const [submissions, setSubmissions] = useState([])
     const [selectedSubmission, setSelectedSubmission] = useState(null)
     const [filter, setFilter] = useState('pending')
@@ -80,15 +82,15 @@ function TravelerMonitor() {
             <div className="monitor-stats">
                 <div className="stat-item">
                     <span className="stat-number">{stats.total}</span>
-                    <span className="stat-label">Total Submissions</span>
+                    <span className="stat-label">{t('totalSubmissions')}</span>
                 </div>
                 <div className="stat-item pending">
                     <span className="stat-number">{stats.pending}</span>
-                    <span className="stat-label">Pending Review</span>
+                    <span className="stat-label">{t('pendingReview')}</span>
                 </div>
                 <div className="stat-item completed">
                     <span className="stat-number">{stats.approved}</span>
-                    <span className="stat-label">Approved</span>
+                    <span className="stat-label">{t('approved')}</span>
                 </div>
             </div>
 
@@ -98,16 +100,16 @@ function TravelerMonitor() {
                     className={`filter-tab ${filter === 'pending' ? 'active' : ''}`}
                     onClick={() => setFilter('pending')}
                 >
-                    Pending
+                    {t('pending')}
                 </button>
                 <button
                     className={`filter-tab ${filter === 'approved' ? 'active' : ''}`}
                     onClick={() => setFilter('approved')}
                 >
-                    Approved
+                    {t('approved')}
                 </button>
                 <button className="refresh-btn" onClick={loadSubmissions}>
-                    Refresh
+                    {t('refresh')}
                 </button>
             </div>
 
@@ -115,10 +117,10 @@ function TravelerMonitor() {
                 {/* Submissions List */}
                 <div className="travelers-list">
                     {loading ? (
-                        <div className="loading-state">Loading submissions...</div>
+                        <div className="loading-state">{t('loadingSubmissions')}</div>
                     ) : submissions.length === 0 ? (
                         <div className="empty-state">
-                            <p>No {filter} submissions found</p>
+                            <p>{t('noSubmissionsFound')}</p>
                         </div>
                     ) : (
                         submissions.map(submission => (

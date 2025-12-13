@@ -28,6 +28,7 @@ from routes.chat_routes import chat_bp
 from routes.local_guide_routes import local_guide_bp
 from routes.hospitality_routes import hospitality_bp
 app.register_blueprint(hospitality_bp, url_prefix="/api/hospitality")
+from routes.posts_routes import posts_bp
 
 # Register API blueprints first (they are more specific)
 app.register_blueprint(user_bp, url_prefix='/api/users')
@@ -37,6 +38,7 @@ app.register_blueprint(notification_bp, url_prefix='/api/notifications')
 app.register_blueprint(quest_bp, url_prefix='/api/quests')
 app.register_blueprint(chat_bp, url_prefix='/api/chat')
 app.register_blueprint(local_guide_bp, url_prefix='/api/local-guide')
+app.register_blueprint(posts_bp, url_prefix='/api/posts')
 
 # ===========================
 # React Frontend Routes
