@@ -75,7 +75,7 @@ export default function Register() {
 
     return (
         <div className="min-h-screen luxury-bg-aurora flex items-center justify-center px-4 py-8">
-            <div className="w-full max-w-md relative z-10">
+            <div className="w-full max-w-sm relative z-10" style={{ minWidth: 320, maxWidth: 380 }}>
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <h1 className="luxury-heading-gold text-5xl mb-3">Vaaya</h1>
@@ -83,7 +83,7 @@ export default function Register() {
                 </div>
 
                 {/* Register Card */}
-                <div className="glass-card p-8">
+                <div className="glass-card p-6" style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.10)' }}>
                     {displayError && (
                         <div className="mb-6 p-4 rounded-lg text-sm" style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444' }}>
                             {displayError}
@@ -113,7 +113,7 @@ export default function Register() {
 
 
 
-                        <button type="submit" disabled={isLoading} className="w-full gold-button disabled:opacity-50 mt-2">
+                        <button type="submit" disabled={isLoading} className="w-full gold-button disabled:opacity-50 mt-2 py-2 text-base" style={{ fontWeight: 600, fontSize: '1rem' }}>
                             {isLoading ? 'Creating account...' : 'Create Account'}
                         </button>
                     </form>
@@ -129,7 +129,8 @@ export default function Register() {
                     <button
                         onClick={handleGoogleSignIn}
                         disabled={isLoading}
-                        className="w-full glass-card py-3 font-medium flex items-center justify-center gap-3 hover:bg-[rgba(255,255,255,0.08)] disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 py-2 rounded gold-button-outline text-base"
+                        style={{ fontWeight: 500, fontSize: '0.95rem', minHeight: 0, marginTop: 0 }}
                     >
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

@@ -8,34 +8,42 @@ Note: Requires 'tensorflow', 'numpy', 'pillow' to be installed.
 import math
 import numpy as np
 from PIL import Image
-import tensorflow as tf
 
-# =====================================================
-# ✅ Model Setup
-# =====================================================
+# Lazy-load TensorFlow to avoid startup delays
+model = None
 
-# Load MobileNetV2 pretrained on ImageNet (good for texture detection)
-base_model = tf.keras.applications.MobileNetV2(
-    input_shape=(224, 224, 3),
-    include_top=False,
-    weights='imagenet'
-)
-
-# Add lightweight classification head
-model = tf.keras.Sequential([
-    base_model,
-    tf.keras.layers.GlobalAveragePooling2D(),
-    tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dense(1, activation='sigmoid')
-])
-
-# Freeze base layers to use as fixed feature extractor
-base_model.trainable = False
-
-# Compile for safety (won't train, just predict)
-model.compile(optimizer='adam', loss='binary_crossentropy')
-
-print("[OK] Loaded MobileNetV2 as Trash Detector Feature Extractor")
+def _load_model():
+    """Lazy-load the TensorFlow model on first use"""
+    global model
+    if model is not None:
+        return model
+    
+    print("[AI] Loading MobileNetV2 model...")
+    import tensorflow as tf
+    
+    # Load MobileNetV2 pretrained on ImageNet (good for texture detection)
+    base_model = tf.keras.applications.MobileNetV2(
+        input_shape=(224, 224, 3),
+        include_top=False,
+        weights='imagenet'
+    )
+    
+    # Add lightweight classification head
+    model = tf.keras.Sequential([
+        base_model,
+        tf.keras.layers.GlobalAveragePooling2D(),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(1, activation='sigmoid')
+    ])
+    
+    # Freeze base layers to use as fixed feature extractor
+    base_model.trainable = False
+    
+    # Compile for safety (won't train, just predict)
+    model.compile(optimizer='adam', loss='binary_crossentropy')
+    
+    print("[OK] Loaded MobileNetV2 as Trash Detector Feature Extractor")
+    return model
 
 # =====================================================
 # 🧩 Image Preprocessing
@@ -53,8 +61,9 @@ def detect_trash(image_path):
     Higher means more cluttered / messy / trash presence.
     """
     try:
+        m = _load_model()  # Lazy-load model
         img = preprocess_image(image_path)
-        preds = model.predict(img, verbose=0)
+        preds = m.predict(img, verbose=0)
         score = float(preds[0][0])
         print(f"[AI] {image_path}: trashiness={score:.2f}")
         return score
