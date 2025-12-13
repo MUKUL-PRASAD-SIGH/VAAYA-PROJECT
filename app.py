@@ -28,6 +28,7 @@ from routes.chat_routes import chat_bp
 from routes.local_guide_routes import local_guide_bp
 from routes.folklore_routes import folklore_bp
 from routes.content_studio_routes import content_bp
+from routes.hospitality_routes import hospitality_bp
 
 
 # Register API blueprints first (they are more specific)
@@ -40,6 +41,7 @@ app.register_blueprint(chat_bp, url_prefix='/api/chat')
 app.register_blueprint(local_guide_bp, url_prefix='/api/local-guide')
 app.register_blueprint(folklore_bp, url_prefix='/api/folklore')
 app.register_blueprint(content_bp, url_prefix='/api/content')
+app.register_blueprint(hospitality_bp, url_prefix='/api/hospitality')
 
 
 # ===========================

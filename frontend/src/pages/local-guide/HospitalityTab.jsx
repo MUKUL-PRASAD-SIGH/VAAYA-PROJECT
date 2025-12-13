@@ -64,6 +64,8 @@ function HospitalityTab() {
     const [activeTab, setActiveTab] = useState('offerings')
     const [expandedOffering, setExpandedOffering] = useState(null)
 
+    const [reviews, setReviews] = useState([])
+
     useEffect(() => {
         loadData()
     }, [])
@@ -71,19 +73,23 @@ function HospitalityTab() {
     const loadData = async () => {
         setLoading(true)
         try {
-            const [expRes, bookRes, statsRes] = await Promise.all([
+            const [expRes, bookRes, statsRes, reviewsRes] = await Promise.all([
                 hospitalityApi.getMyExperiences(),
-                hospitalityApi.getMyBookings(),
-                hospitalityApi.getHostStats()
+                hospitalityApi.getHostBookings(),
+                hospitalityApi.getHostStats(),
+                hospitalityApi.getHostReviews()
             ])
             setOfferings(expRes.data.experiences || [])
             setBookings(bookRes.data.bookings || [])
             setStats(statsRes.data || {})
+            setReviews(reviewsRes.data.reviews || [])
         } catch (error) {
             console.error('Failed to load data:', error)
-            setOfferings(getSampleOfferings())
-            setBookings(getSampleBookings())
-            setStats(getSampleStats())
+            // Keep empty state on error, or optional dummy fallback if strictly needed
+            setOfferings([])
+            setBookings([])
+            setStats({})
+            setReviews([])
         } finally {
             setLoading(false)
         }
@@ -362,7 +368,7 @@ function HospitalityTab() {
                 )}
 
                 {activeTab === 'reviews' && (
-                    <ReviewsSection reviews={sampleReviews} stats={stats} />
+                    <ReviewsSection reviews={reviews} stats={stats} />
                 )}
             </div>
 
@@ -556,18 +562,18 @@ function ReviewsSection({ reviews, stats }) {
             {/* Rating Summary */}
             <div className="rating-hero">
                 <div className="rating-display">
-                    <span className="mega-rating">{stats.avg_rating || 4.8}</span>
+                    <span className="mega-rating">{stats.avg_rating || 0}</span>
                     <div className="rating-stars-row">
                         {[1, 2, 3, 4, 5].map(i => (
                             <Star
                                 key={i}
                                 size={24}
-                                fill={i <= Math.floor(stats.avg_rating || 4.8) ? '#fbbf24' : 'transparent'}
+                                fill={i <= Math.floor(stats.avg_rating || 0) ? '#fbbf24' : 'transparent'}
                                 color="#fbbf24"
                             />
                         ))}
                     </div>
-                    <span className="rating-count">Based on {stats.total_reviews || 91} reviews</span>
+                    <span className="rating-count">Based on {stats.total_reviews || 0} reviews</span>
                 </div>
                 <div className="rating-breakdown">
                     {[5, 4, 3, 2, 1].map(rating => (

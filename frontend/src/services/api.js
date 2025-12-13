@@ -151,10 +151,12 @@ export const hospitalityApi = {
     updateBooking: (bookingId, data) => api.put(`/api/hospitality/host/bookings/${bookingId}`, data),
 
     // Host - Stats & Analytics
+    getHostReviews: () => api.get('/api/hospitality/host/reviews'),
     getHostStats: () => api.get('/api/hospitality/host/stats'),
     getHospitalityScore: () => api.get('/api/hospitality/host/score'),
 
     // Public - Top Hosts & Scoreboard
+    getAllExperiences: (params) => api.get('/api/hospitality/experiences', { params }),
     getTopHosts: (city) => api.get('/api/hospitality/top-hosts', { params: { city } }),
     getHospitalityScoreboard: () => api.get('/api/hospitality/scoreboard'),
 }

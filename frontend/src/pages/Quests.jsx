@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { questsApi, aiApi } from '../services/api'
+import { questsApi, aiApi, hospitalityApi } from '../services/api'
 import { useTheme } from '../context/ThemeContext'
 
 export default function Quests() {
@@ -136,9 +136,12 @@ export default function Quests() {
 
     const handleFilterChange = (e) => {
         const { id, value } = e.target
+        // Handle mapped filter name for hospitality vs quests if needed, 
+        // essentially we just update state.
+        const key = id.replace('-filter', '')
         setFilters((prev) => ({
             ...prev,
-            [id.replace('-filter', '')]: value,
+            [key]: value,
         }))
     }
 
@@ -147,6 +150,31 @@ export default function Quests() {
         if (filters.difficulty !== 'all' && quest.difficulty?.toLowerCase() !== filters.difficulty) return false
         return true
     })
+
+    // Hospitality Logic
+    const [experiences, setExperiences] = useState([])
+    const [activeTab, setActiveTab] = useState('quests') // 'quests' or 'hospitality'
+
+    useEffect(() => {
+        if (activeTab === 'hospitality') {
+            loadExperiences()
+        }
+    }, [activeTab])
+
+    const loadExperiences = async () => {
+        try {
+            setLoading(true)
+            const params = {}
+            if (filters.category !== 'all') params.category = filters.category
+
+            const response = await hospitalityApi.getAllExperiences(params)
+            setExperiences(response.data.experiences || [])
+        } catch (error) {
+            console.error('Failed to load experiences:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const openQuestModal = (quest) => {
         setSelectedQuest(quest)
@@ -278,6 +306,28 @@ export default function Quests() {
                 </div>
             </div>
 
+            {/* Tab Navigation */}
+            <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6 gap-6">
+                <button
+                    className={`py-2 px-1 font-medium text-lg border-b-2 transition-colors ${activeTab === 'quests'
+                        ? 'border-purple-600 text-purple-600 dark:text-purple-400 dark:border-purple-400'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                        }`}
+                    onClick={() => setActiveTab('quests')}
+                >
+                    Volunteering Quests
+                </button>
+                <button
+                    className={`py-2 px-1 font-medium text-lg border-b-2 transition-colors ${activeTab === 'hospitality'
+                        ? 'border-purple-600 text-purple-600 dark:text-purple-400 dark:border-purple-400'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                        }`}
+                    onClick={() => setActiveTab('hospitality')}
+                >
+                    Local Experiences
+                </button>
+            </div>
+
             {/* Filters */}
             <div className={`${cardClass} rounded-lg shadow-lg p-6 mb-8`}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -341,211 +391,268 @@ export default function Quests() {
                 </div>
             </div>
 
-            {/* Quests Grid */}
+            {/* Content Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {loading ? (
-                    <div className={`col-span-full text-center py-8 ${textMuted}`}>
-                        <p>Loading quests...</p>
+                    <div className={`col-span-full text-center py-12 ${textMuted}`}>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                        <p>Loading...</p>
                     </div>
-                ) : filteredQuests.length === 0 ? (
-                    <div className={`col-span-full text-center py-8 ${textMuted}`}>
-                        <p>No quests found matching your filters.</p>
-                    </div>
-                ) : (
-                    filteredQuests.map((quest) => (
-                        <div
-                            key={quest.id || quest._id}
-                            className={`quest-card ${cardClass} rounded-lg shadow-lg overflow-hidden`}
-                            onClick={() => openQuestModal(quest)}
-                        >
-                            <div className="h-40 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-6xl">
-                                Q
-                            </div>
-                            <div className="p-6">
-                                <div className="flex justify-between items-start mb-3">
-                                    <h4 className={`font-bold ${textPrimary} text-lg`}>{quest.name}</h4>
-                                    <span className={`${isDarkMode ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'} px-3 py-1 rounded-full font-semibold text-sm`}>
-                                        {quest.points} pts
-                                    </span>
+                ) : activeTab === 'quests' ? (
+                    // Quests Grid
+                    filteredQuests.length === 0 ? (
+                        <div className={`col-span-full text-center py-12 ${textMuted}`}>
+                            <p>No quests found matching your filters.</p>
+                            <button
+                                onClick={() => setFilters({ category: 'all', difficulty: 'all', distance: 'all', sort: 'points' })}
+                                className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
+                            >
+                                Clear Filters
+                            </button>
+                        </div>
+                    ) : (
+                        filteredQuests.map((quest) => (
+                            <div
+                                key={quest.id || quest._id}
+                                className={`quest-card ${cardClass} rounded-lg shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+                                onClick={() => openQuestModal(quest)}
+                            >
+                                <div className="h-48 bg-gray-200 relative">
+                                    <img
+                                        src={quest.image || `https://source.unsplash.com/random/800x600?${quest.category}`}
+                                        alt={quest.name}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => { e.target.src = 'https://source.unsplash.com/random/800x600?volunteer' }}
+                                    />
+                                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-purple-600 shadow-sm">
+                                        {quest.points} Points
+                                    </div>
+                                    {quest.distance_meters && (
+                                        <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur px-2 py-1 rounded text-xs text-white">
+                                            {(quest.distance_meters / 1000).toFixed(1)} km
+                                        </div>
+                                    )}
                                 </div>
-                                <p className={`${textSecondary} text-sm mb-4 line-clamp-2`}>{quest.description}</p>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                        <span className={`text-sm ${textMuted}`}>Location: {quest.location}</span>
-                                        {quest.distance_meters !== undefined && (
-                                            <span className={`text-xs ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} font-semibold flex items-center mt-1`}>
-                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                </svg>
-                                                {(quest.distance_meters / 1000).toFixed(2)} km away
-                                            </span>
+                                <div className="p-5">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h4 className={`font-bold ${textPrimary} text-lg line-clamp-1`}>{quest.name}</h4>
+                                        <span className={`px-2 py-1 rounded text-xs font-medium uppercase tracking-wider ${getDifficultyColor(quest.difficulty)}`}>
+                                            {quest.difficulty}
+                                        </span>
+                                    </div>
+                                    <p className={`${textSecondary} text-sm mb-4 line-clamp-2`}>{quest.description}</p>
+                                    <div className="flex items-center text-sm text-gray-500">
+                                        <span>📍 {quest.location}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )
+                ) : (
+                    // Experiences Grid
+                    experiences.length === 0 ? (
+                        <div className={`col-span-full text-center py-12 ${textMuted}`}>
+                            <p className="text-xl mb-2">No experiences found yet.</p>
+                            <p className="text-sm">Be the first to create one in the Local Guide Dashboard!</p>
+                        </div>
+                    ) : (
+                        experiences.map((exp) => (
+                            <div key={exp._id} className={`${cardClass} rounded-lg shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+                                <div className="h-48 bg-gray-200 relative">
+                                    <img
+                                        src={exp.photos?.[0] || 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400'}
+                                        alt={exp.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-green-600 shadow-sm">
+                                        ₹{exp.price}
+                                    </div>
+                                </div>
+                                <div className="p-5">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h3 className={`text-lg font-bold ${textPrimary} mb-1 line-clamp-1`}>{exp.title}</h3>
+                                        {exp.avg_rating > 0 && (
+                                            <div className="flex items-center bg-yellow-100 px-2 py-1 rounded">
+                                                ⭐ <span className="text-xs font-bold text-yellow-700 ml-1">{exp.avg_rating}</span>
+                                            </div>
                                         )}
                                     </div>
-                                    <span className={`px-2 py-1 rounded text-xs ${getDifficultyColor(quest.difficulty)}`}>
-                                        {quest.difficulty}
-                                    </span>
+                                    <p className={`${textSecondary} text-sm mb-4 line-clamp-2`}>{exp.description}</p>
+
+                                    <div className="flex items-center justify-between text-sm text-gray-500 mt-auto">
+                                        <span className="flex items-center gap-1">
+                                            📍 {exp.city || 'Local'}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            👤 {exp.host_name}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))
+                        ))
+                    )
                 )}
             </div>
 
+
             {/* Quest Detail Modal */}
-            {showModal && selectedQuest && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className={`${modalBg} rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto`}>
-                        <div className="p-8">
-                            <div className="flex justify-between items-start mb-6">
-                                <div>
-                                    <h3 className={`text-3xl font-bold ${textPrimary} mb-2`}>{selectedQuest.name}</h3>
-                                    <div className="flex items-center space-x-4">
-                                        <span className={`${isDarkMode ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'} px-3 py-1 rounded-full font-semibold`}>
-                                            {selectedQuest.points} pts
-                                        </span>
-                                        <span className={`${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'} px-3 py-1 rounded-full`}>
-                                            {selectedQuest.difficulty}
-                                        </span>
+            {
+                showModal && selectedQuest && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className={`${modalBg} rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto`}>
+                            <div className="p-8">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div>
+                                        <h3 className={`text-3xl font-bold ${textPrimary} mb-2`}>{selectedQuest.name}</h3>
+                                        <div className="flex items-center space-x-4">
+                                            <span className={`${isDarkMode ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'} px-3 py-1 rounded-full font-semibold`}>
+                                                {selectedQuest.points} pts
+                                            </span>
+                                            <span className={`${isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'} px-3 py-1 rounded-full`}>
+                                                {selectedQuest.difficulty}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button onClick={closeModal} className={`${textMuted} hover:${textPrimary}`}>
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div className="mb-6">
+                                    <div className="w-full h-64 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white text-8xl">
+                                        Q
                                     </div>
                                 </div>
-                                <button onClick={closeModal} className={`${textMuted} hover:${textPrimary}`}>
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
 
-                            <div className="mb-6">
-                                <div className="w-full h-64 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white text-8xl">
-                                    Q
+                                <div className="mb-6">
+                                    <h4 className={`font-semibold ${textPrimary} mb-2`}>Description</h4>
+                                    <p className={textSecondary}>{selectedQuest.description}</p>
                                 </div>
-                            </div>
 
-                            <div className="mb-6">
-                                <h4 className={`font-semibold ${textPrimary} mb-2`}>Description</h4>
-                                <p className={textSecondary}>{selectedQuest.description}</p>
-                            </div>
+                                <div className="mb-6">
+                                    <h4 className={`font-semibold ${textPrimary} mb-2`}>Location</h4>
+                                    <p className={textSecondary}>Location: {selectedQuest.location}</p>
+                                </div>
 
-                            <div className="mb-6">
-                                <h4 className={`font-semibold ${textPrimary} mb-2`}>Location</h4>
-                                <p className={textSecondary}>Location: {selectedQuest.location}</p>
-                            </div>
+                                <div className="mb-6">
+                                    <h4 className={`font-semibold ${textPrimary} mb-2`}>Requirements</h4>
+                                    <ul className={`list-disc list-inside ${textSecondary} space-y-1`}>
+                                        {(selectedQuest.requirements || ['Complete the quest task', 'Submit photo proof']).map((req, i) => (
+                                            <li key={i}>{req}</li>
+                                        ))}
+                                    </ul>
+                                </div>
 
-                            <div className="mb-6">
-                                <h4 className={`font-semibold ${textPrimary} mb-2`}>Requirements</h4>
-                                <ul className={`list-disc list-inside ${textSecondary} space-y-1`}>
-                                    {(selectedQuest.requirements || ['Complete the quest task', 'Submit photo proof']).map((req, i) => (
-                                        <li key={i}>{req}</li>
-                                    ))}
-                                </ul>
-                            </div>
-
-                            <div className="flex space-x-4">
-                                <button
-                                    onClick={startQuest}
-                                    className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition"
-                                >
-                                    Start Quest
-                                </button>
-                                <button
-                                    onClick={() => window.location.href = '/heatmap'}
-                                    className={`${isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} font-bold py-3 px-6 rounded-lg transition`}
-                                >
-                                    View on Map
-                                </button>
+                                <div className="flex space-x-4">
+                                    <button
+                                        onClick={startQuest}
+                                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition"
+                                    >
+                                        Start Quest
+                                    </button>
+                                    <button
+                                        onClick={() => window.location.href = '/heatmap'}
+                                        className={`${isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} font-bold py-3 px-6 rounded-lg transition`}
+                                    >
+                                        View on Map
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Camera Verification Modal */}
-            {showCameraModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className={`${modalBg} rounded-2xl max-w-2xl w-full`}>
-                        <div className="p-8">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className={`text-2xl font-bold ${textPrimary}`}>Verify Quest Completion</h3>
-                                <button onClick={closeCameraModal} className={`${textMuted} hover:${textPrimary}`}>
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            {!capturedPhoto ? (
-                                <div className="mb-6 relative">
-                                    <video
-                                        ref={videoRef}
-                                        className="w-full h-96 bg-gray-900 rounded-lg object-cover"
-                                        autoPlay
-                                        playsInline
-                                    />
-                                    <canvas ref={canvasRef} className="hidden" />
-
-                                    <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                                        <button
-                                            onClick={capturePhoto}
-                                            className="bg-white text-purple-600 p-4 rounded-full shadow-lg hover:bg-gray-100 transition"
-                                        >
-                                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="mb-6">
-                                    <img src={capturedPhoto} alt="Captured" className="w-full h-96 object-cover rounded-lg" />
-                                    <div className="mt-4 flex space-x-4">
-                                        <button
-                                            onClick={retakePhoto}
-                                            className={`flex-1 ${isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} font-bold py-3 px-6 rounded-lg transition`}
-                                        >
-                                            Retake Photo
-                                        </button>
-                                        <button
-                                            onClick={submitVerification}
-                                            disabled={verifying}
-                                            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition disabled:opacity-50"
-                                        >
-                                            {verifying ? 'Submitting...' : 'Submit for Verification'}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {!capturedPhoto && (
-                                <div className={`border-2 border-dashed ${borderColor} rounded-lg p-8 text-center`}>
-                                    <input
-                                        type="file"
-                                        id="photo-upload"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0]
-                                            if (file) {
-                                                const reader = new FileReader()
-                                                reader.onload = (e) => setCapturedPhoto(e.target?.result)
-                                                reader.readAsDataURL(file)
-                                            }
-                                        }}
-                                    />
-                                    <label htmlFor="photo-upload" className="cursor-pointer">
-                                        <svg className={`w-12 h-12 mx-auto ${textMuted} mb-4`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            {
+                showCameraModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className={`${modalBg} rounded-2xl max-w-2xl w-full`}>
+                            <div className="p-8">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className={`text-2xl font-bold ${textPrimary}`}>Verify Quest Completion</h3>
+                                    <button onClick={closeCameraModal} className={`${textMuted} hover:${textPrimary}`}>
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                         </svg>
-                                        <p className={`${textSecondary} font-semibold`}>Click to upload a photo</p>
-                                        <p className={`${textMuted} text-sm mt-2`}>or drag and drop</p>
-                                    </label>
+                                    </button>
                                 </div>
-                            )}
+
+                                {!capturedPhoto ? (
+                                    <div className="mb-6 relative">
+                                        <video
+                                            ref={videoRef}
+                                            className="w-full h-96 bg-gray-900 rounded-lg object-cover"
+                                            autoPlay
+                                            playsInline
+                                        />
+                                        <canvas ref={canvasRef} className="hidden" />
+
+                                        <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+                                            <button
+                                                onClick={capturePhoto}
+                                                className="bg-white text-purple-600 p-4 rounded-full shadow-lg hover:bg-gray-100 transition"
+                                            >
+                                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="mb-6">
+                                        <img src={capturedPhoto} alt="Captured" className="w-full h-96 object-cover rounded-lg" />
+                                        <div className="mt-4 flex space-x-4">
+                                            <button
+                                                onClick={retakePhoto}
+                                                className={`flex-1 ${isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} font-bold py-3 px-6 rounded-lg transition`}
+                                            >
+                                                Retake Photo
+                                            </button>
+                                            <button
+                                                onClick={submitVerification}
+                                                disabled={verifying}
+                                                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition disabled:opacity-50"
+                                            >
+                                                {verifying ? 'Submitting...' : 'Submit for Verification'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!capturedPhoto && (
+                                    <div className={`border-2 border-dashed ${borderColor} rounded-lg p-8 text-center`}>
+                                        <input
+                                            type="file"
+                                            id="photo-upload"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0]
+                                                if (file) {
+                                                    const reader = new FileReader()
+                                                    reader.onload = (e) => setCapturedPhoto(e.target?.result)
+                                                    reader.readAsDataURL(file)
+                                                }
+                                            }}
+                                        />
+                                        <label htmlFor="photo-upload" className="cursor-pointer">
+                                            <svg className={`w-12 h-12 mx-auto ${textMuted} mb-4`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            </svg>
+                                            <p className={`${textSecondary} font-semibold`}>Click to upload a photo</p>
+                                            <p className={`${textMuted} text-sm mt-2`}>or drag and drop</p>
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     )
 }
