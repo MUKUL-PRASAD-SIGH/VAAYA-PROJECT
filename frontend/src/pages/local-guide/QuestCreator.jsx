@@ -32,6 +32,8 @@ function QuestCreator() {
         title: '',
         description: '',
         location: '',
+        latitude: '12.9716',
+        longitude: '77.5946',
         difficulty: '',
         points: 100,
         timeLimit: '',
@@ -43,6 +45,23 @@ function QuestCreator() {
 
     useEffect(() => {
         loadMyQuests()
+
+        // Try to get location for auto-fill
+        const savedLoc = localStorage.getItem('userLocation')
+        if (savedLoc) {
+            try {
+                const { lat, lng } = JSON.parse(savedLoc)
+                setQuest(prev => ({ ...prev, latitude: lat, longitude: lng }))
+            } catch (e) { console.error('Error parsing location', e) }
+        } else if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                setQuest(prev => ({
+                    ...prev,
+                    latitude: pos.coords.latitude,
+                    longitude: pos.coords.longitude
+                }))
+            })
+        }
     }, [])
 
     const loadMyQuests = async () => {
@@ -78,7 +97,10 @@ function QuestCreator() {
                 category: quest.type,
                 location: {
                     name: quest.location,
-                    coordinates: { lat: 12.9716, lng: 77.5946 }
+                    coordinates: {
+                        lat: parseFloat(quest.latitude),
+                        lng: parseFloat(quest.longitude)
+                    }
                 },
                 reward_points: quest.points,
                 difficulty: quest.difficulty || 'medium',
@@ -97,6 +119,8 @@ function QuestCreator() {
                 title: '',
                 description: '',
                 location: '',
+                latitude: '12.9716',
+                longitude: '77.5946',
                 difficulty: '',
                 points: 100,
                 timeLimit: '',
@@ -107,7 +131,11 @@ function QuestCreator() {
             setStep(1)
         } catch (error) {
             console.error('Failed to create quest:', error)
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Failed to create quest' })
+            if (error.response?.status === 401) {
+                setMessage({ type: 'error', text: 'Session expired. Please log out and log in again.' })
+            } else {
+                setMessage({ type: 'error', text: error.response?.data?.error || 'Failed to create quest' })
+            }
         } finally {
             setSaving(false)
         }
@@ -188,7 +216,7 @@ function QuestCreator() {
 
                         <div className="form-row">
                             <div className="form-group">
-                                <label>Location</label>
+                                <label>Location Name</label>
                                 <input
                                     type="text"
                                     placeholder="e.g., Mysore, Karnataka"
@@ -197,20 +225,40 @@ function QuestCreator() {
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Time Limit</label>
-                                <select
-                                    value={quest.timeLimit}
-                                    onChange={(e) => handleInputChange('timeLimit', e.target.value)}
-                                >
-                                    <option value="">Select...</option>
-                                    <option value="1h">1 Hour</option>
-                                    <option value="3h">3 Hours</option>
-                                    <option value="1d">1 Day</option>
-                                    <option value="3d">3 Days</option>
-                                    <option value="1w">1 Week</option>
-                                    <option value="none">No Limit</option>
-                                </select>
+                                <label>Coordinates (Lat, Lng)</label>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <input
+                                        type="number"
+                                        placeholder="Lat"
+                                        step="any"
+                                        value={quest.latitude}
+                                        onChange={(e) => handleInputChange('latitude', e.target.value)}
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Lng"
+                                        step="any"
+                                        value={quest.longitude}
+                                        onChange={(e) => handleInputChange('longitude', e.target.value)}
+                                    />
+                                </div>
                             </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Time Limit</label>
+                            <select
+                                value={quest.timeLimit}
+                                onChange={(e) => handleInputChange('timeLimit', e.target.value)}
+                            >
+                                <option value="">Select...</option>
+                                <option value="1h">1 Hour</option>
+                                <option value="3h">3 Hours</option>
+                                <option value="1d">1 Day</option>
+                                <option value="3d">3 Days</option>
+                                <option value="1w">1 Week</option>
+                                <option value="none">No Limit</option>
+                            </select>
                         </div>
 
                         <div className="form-group">
@@ -377,4 +425,3 @@ function QuestCreator() {
 }
 
 export default QuestCreator
-

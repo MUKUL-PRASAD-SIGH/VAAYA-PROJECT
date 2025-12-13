@@ -33,9 +33,8 @@ def plan_trip(user_id, destination, start_date, end_date, location_coords, count
     if isinstance(end_date, str):
         end_date = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
     
-    # Convert user_id to ObjectId if string
-    if isinstance(user_id, str):
-        user_id = ObjectId(user_id)
+    # Note: user_id can be a string (session ID) or ObjectId (authenticated user)
+    # Keep it as-is to support both modes
     
     # Create base trip
     trip = create_trip(user_id, destination, start_date, end_date, preferences)

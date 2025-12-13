@@ -13,7 +13,7 @@ import os
 app = Flask(__name__, static_folder='frontend/dist', static_url_path='/')
 app.config.from_object(Config)
 app.config['SECRET_KEY'] = Config.SECRET_KEY
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 # Initialize Socket.IO
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
@@ -26,6 +26,8 @@ from routes.notification_routes import notification_bp
 from routes.quest_routes import quest_bp
 from routes.chat_routes import chat_bp
 from routes.local_guide_routes import local_guide_bp
+from routes.hospitality_routes import hospitality_bp
+app.register_blueprint(hospitality_bp, url_prefix="/api/hospitality")
 from routes.posts_routes import posts_bp
 
 # Register API blueprints first (they are more specific)

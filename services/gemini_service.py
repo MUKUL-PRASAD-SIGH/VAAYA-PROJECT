@@ -24,7 +24,7 @@ if Config.GEMINI_API_KEY:
     genai.configure(api_key=Config.GEMINI_API_KEY)
 
 # Models
-GROQ_MODEL = "llama3-70b-8192"
+GROQ_MODEL = "llama-3.3-70b-versatile"
 GEMINI_MODEL = "models/gemini-2.5-flash"
 
 

@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import StatCard from '../components/common/StatCard'
-import { questsApi } from '../services/api'
+import { questsApi, tripsApi } from '../services/api'
 import { getUserData } from '../services/auth'
 import { useTheme } from '../context/ThemeContext'
 
 export default function Dashboard() {
-    const { isDarkMode, themeColors, getThemeStyles } = useTheme()
+    const { themeColors } = useTheme()
     const [stats, setStats] = useState({
         totalPoints: 0,
         completedQuests: 0,
@@ -14,29 +13,75 @@ export default function Dashboard() {
         photosCount: 0,
     })
     const [activeQuests, setActiveQuests] = useState([])
+    const [upcomingTrips, setUpcomingTrips] = useState([])
+    const [recentActivity, setRecentActivity] = useState([])
     const [loading, setLoading] = useState(true)
     const user = getUserData()
 
-    // Theme-aware styling
-    const cardStyle = { ...getThemeStyles.card, borderRadius: '0.5rem', padding: '1.5rem' }
-    const textPrimaryStyle = getThemeStyles.textPrimary
-    const textSecondaryStyle = getThemeStyles.textSecondary
-    const textMutedStyle = getThemeStyles.textMuted
-    const borderStyle = getThemeStyles.border
-
     useEffect(() => {
         loadDashboardData()
+
+        // Request location permission
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords
+                    localStorage.setItem('userLocation', JSON.stringify({ lat: latitude, lng: longitude }))
+                    console.log('📍 Location updated:', latitude, longitude)
+                },
+                (error) => {
+                    console.log('⚠️ Location permission denied or error:', error)
+                }
+            )
+        }
     }, [])
 
     const loadDashboardData = async () => {
         try {
+            const activities = []
             const questsResponse = await questsApi.getAll()
             const quests = questsResponse.data.quests || []
             setActiveQuests(quests.slice(0, 3))
+
+            quests.forEach(quest => {
+                if (quest.status === 'completed' || quest.status === 'verified') {
+                    activities.push({
+                        type: 'quest',
+                        message: `Completed "${quest.name || 'Quest'}"`,
+                        time: quest.completed_at ? formatTimeAgo(quest.completed_at) : 'Recently',
+                        icon: '🏆',
+                        timestamp: new Date(quest.completed_at || quest.created_at)
+                    })
+                }
+            })
+
+            let trips = []
+            try {
+                const tripsResponse = await tripsApi.getAll()
+                trips = tripsResponse.data.trips || []
+                trips = trips.sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
+                setUpcomingTrips(trips.slice(0, 3))
+
+                trips.forEach(trip => {
+                    activities.push({
+                        type: 'trip',
+                        message: `Created trip to ${trip.destination}`,
+                        time: trip.created_at ? formatTimeAgo(trip.created_at) : 'Recently',
+                        icon: '✈️',
+                        timestamp: new Date(trip.created_at || Date.now())
+                    })
+                })
+            } catch (tripError) {
+                console.error('Error loading trips:', tripError)
+            }
+
+            activities.sort((a, b) => b.timestamp - a.timestamp)
+            setRecentActivity(activities.slice(0, 5))
+
             setStats({
                 totalPoints: user.points || 0,
-                completedQuests: user.completed_quests || 0,
-                activeTrips: 0,
+                completedQuests: quests.filter(q => q.status === 'completed' || q.status === 'verified').length,
+                activeTrips: trips.length,
                 photosCount: 0,
             })
         } catch (error) {
@@ -46,220 +91,221 @@ export default function Dashboard() {
         }
     }
 
-    const recentActivity = [
-        { type: 'quest', message: 'Completed "Visit Times Square"', time: '2 hours ago', icon: 'C' },
-        { type: 'trip', message: 'Created trip to Paris', time: '5 hours ago', icon: 'T' },
-        { type: 'points', message: 'Earned 50 points', time: '1 day ago', icon: 'S' },
-    ]
+    const formatTimeAgo = (dateString) => {
+        const date = new Date(dateString)
+        const now = new Date()
+        const diffMs = now - date
+        const diffMins = Math.floor(diffMs / 60000)
+        const diffHours = Math.floor(diffMs / 3600000)
+        const diffDays = Math.floor(diffMs / 86400000)
+
+        if (diffMins < 1) return 'Just now'
+        if (diffMins < 60) return `${diffMins} min ago`
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+        return date.toLocaleDateString()
+    }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Welcome Section */}
-            <div className="mb-8">
-                <h2 className="text-3xl font-bold mb-2" style={textPrimaryStyle}>
-                    Welcome back, <span>{user.username || 'User'}</span>!
-                </h2>
-                <p style={textSecondaryStyle}>Your travel memories and upcoming adventures</p>
-            </div>
+        <div className="min-h-screen luxury-bg-aurora luxury-scrollbar">
+            <div className="container mx-auto px-6 py-12 relative z-10">
 
-            {/* Quick Action: Plan Trip */}
-            <div className="rounded-lg shadow-xl p-8 mb-8 text-white" style={{ background: getThemeStyles.gradient }}>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="text-2xl font-bold mb-2">Ready for your next adventure?</h3>
-                        <p className="opacity-90">
-                            Plan your trip and discover sustainable quests at your destination
-                        </p>
+                {/* Hero Welcome Section */}
+                <div className="text-center" style={{ marginBottom: '3rem' }}>
+                    <p className="luxury-subheading mb-4">YOUR ONCE IN A LIFETIME EXPERIENCE</p>
+                    <h1 className="luxury-heading text-5xl md:text-6xl mb-4">
+                        Welcome back, <span className="luxury-heading-gold">{user.username || 'Traveler'}</span>
+                    </h1>
+                    <p className="luxury-text-muted max-w-2xl mx-auto">
+                        Discover your next adventure across the beautiful landscapes of Karnataka
+                    </p>
+                </div>
+
+                {/* Quick Booking Bar */}
+                <div className="glass-card p-6 flex flex-wrap items-center justify-between gap-4" style={{ marginBottom: '3rem' }}>
+                    <div className="flex flex-wrap gap-4 flex-1">
+                        <div className="flex-1 min-w-[150px]">
+                            <p className="luxury-subheading mb-1">DESTINATION</p>
+                            <p className="luxury-text font-medium">{upcomingTrips[0]?.destination || 'Choose location'}</p>
+                        </div>
+                        <div className="flex-1 min-w-[120px]">
+                            <p className="luxury-subheading mb-1">FROM</p>
+                            <p className="luxury-text font-medium">
+                                {upcomingTrips[0]?.start_date ? new Date(upcomingTrips[0].start_date).toLocaleDateString() : 'Select date'}
+                            </p>
+                        </div>
+                        <div className="flex-1 min-w-[120px]">
+                            <p className="luxury-subheading mb-1">TO</p>
+                            <p className="luxury-text font-medium">
+                                {upcomingTrips[0]?.end_date ? new Date(upcomingTrips[0].end_date).toLocaleDateString() : 'Select date'}
+                            </p>
+                        </div>
+                        <div className="flex-1 min-w-[100px]">
+                            <p className="luxury-subheading mb-1">TRIPS</p>
+                            <p className="luxury-text font-medium">{stats.activeTrips}</p>
+                        </div>
                     </div>
-                    <Link
-                        to="/trips"
-                        className="bg-white px-8 py-3 rounded-lg font-bold hover:bg-opacity-90 transition"
-                        style={{ color: themeColors.primary }}
-                    >
-                        Plan a Trip
+                    <Link to="/trips" className="gold-button">
+                        Plan Trip
                     </Link>
                 </div>
-            </div>
 
-            {/* Trip Memories & Photos */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <div className="rounded-lg shadow-lg p-6" style={cardStyle}>
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold" style={textPrimaryStyle}>Trip Memories</h3>
-                        <button className="text-sm font-semibold hover:opacity-80" style={{ color: themeColors.primary }}>
-                            View All
-                        </button>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8" style={{ marginBottom: '3rem' }}>
+                    <div className="luxury-stat-card">
+                        <div className="luxury-stat-value">{stats.totalPoints}</div>
+                        <div className="luxury-stat-label">Points Earned</div>
                     </div>
-                    <div className="space-y-4">
-                        <div className="text-center py-8" style={textMutedStyle}>
-                            <p>No memories yet. Start your first trip!</p>
-                        </div>
+                    <div className="luxury-stat-card">
+                        <div className="luxury-stat-value">{stats.completedQuests}</div>
+                        <div className="luxury-stat-label">Quests Complete</div>
+                    </div>
+                    <div className="luxury-stat-card">
+                        <div className="luxury-stat-value">{stats.activeTrips}</div>
+                        <div className="luxury-stat-label">Trips Planned</div>
+                    </div>
+                    <div className="luxury-stat-card">
+                        <div className="luxury-stat-value">{stats.photosCount}</div>
+                        <div className="luxury-stat-label">Photos Shared</div>
                     </div>
                 </div>
 
-                <div className="rounded-lg shadow-lg p-6" style={cardStyle}>
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold" style={textPrimaryStyle}>Your Travel Photos</h3>
-                        <button className="text-sm font-semibold hover:opacity-80" style={{ color: themeColors.primary }}>
-                            View Gallery
-                        </button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
-                        <div className="col-span-3 text-center py-8" style={textMutedStyle}>
-                            <p>Upload photos from your quests!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-            {/* Upcoming Trips & Completed Tasks */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <div className="rounded-lg shadow-lg p-6" style={cardStyle}>
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold" style={textPrimaryStyle}>Upcoming Trips</h3>
-                        <Link to="/trips" className="text-sm font-semibold hover:opacity-80" style={{ color: themeColors.primary }}>
-                            Plan New Trip
-                        </Link>
-                    </div>
-                    <div className="space-y-4">
-                        <div className="text-center py-8" style={textMutedStyle}>
-                            <p>No upcoming trips planned</p>
-                            <Link
-                                to="/trips"
-                                className="inline-block mt-3 text-white px-6 py-2 rounded-lg hover:opacity-90 transition"
-                                style={{ backgroundColor: themeColors.primary }}
-                            >
-                                Plan Your First Trip
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                    {/* Left Column - Featured Content */}
+                    <div className="lg:col-span-2 space-y-12">
 
-                <div className="rounded-lg shadow-lg p-6" style={cardStyle}>
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold" style={textPrimaryStyle}>Completed Tasks</h3>
-                        <span className="text-sm" style={textSecondaryStyle}>
-                            <span>{stats.completedQuests}</span> completed
-                        </span>
-                    </div>
-                    <div className="space-y-3">
-                        <div className="text-center py-8" style={textMutedStyle}>
-                            <p>Complete quests to see them here!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <StatCard title="Total Points" value={stats.totalPoints} icon="P" borderColor="purple" />
-                <StatCard title="Quests Completed" value={stats.completedQuests} icon="Q" borderColor="green" />
-                <StatCard title="Trips Planned" value={stats.activeTrips} icon="T" borderColor="blue" />
-                <StatCard title="Photos Shared" value={stats.photosCount} icon="C" borderColor="yellow" />
-            </div>
-
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <div className="rounded-lg shadow-lg p-6" style={cardStyle}>
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold" style={textPrimaryStyle}>Active Quests</h3>
-                            <Link to="/quests" className="font-semibold hover:opacity-80" style={{ color: themeColors.primary }}>
-                                View All
-                            </Link>
-                        </div>
-                        <div className="space-y-4">
-                            {loading ? (
-                                <div className="text-center py-8" style={textSecondaryStyle}>
-                                    <p>Loading quests...</p>
+                        {/* Upcoming Trips - Featured Card */}
+                        <div className="glass-card p-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <p className="luxury-subheading mb-2">UPCOMING ADVENTURES</p>
+                                    <h2 className="luxury-heading-gold text-3xl">Your Trips</h2>
                                 </div>
-                            ) : activeQuests.length === 0 ? (
-                                <div className="text-center py-8" style={textSecondaryStyle}>
-                                    <p>Plan a trip to see sustainable quests!</p>
-                                    <Link to="/trips" className="mt-2 inline-block hover:opacity-80" style={{ color: themeColors.primary }}>
-                                        Plan Trip
-                                    </Link>
+                                <Link to="/trips" className="gold-button-outline text-sm">View All</Link>
+                            </div>
+
+                            {upcomingTrips.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <p className="luxury-text-muted mb-4">No adventures planned yet</p>
+                                    <Link to="/trips" className="gold-button">Plan Your First Trip</Link>
                                 </div>
                             ) : (
-                                activeQuests.map((quest) => (
-                                    <div
-                                        key={quest._id || quest.id}
-                                        className="flex items-center space-x-4 p-4 border rounded-lg hover:opacity-90 transition cursor-pointer"
-                                        style={{ borderColor: themeColors.border }}
-                                        onClick={() => window.location.href = '/quests'}
-                                    >
-                                        <div className="flex-shrink-0 w-16 h-16 rounded-lg flex items-center justify-center text-white text-2xl" style={{ background: getThemeStyles.gradient }}>
-                                            Q
+                                <div className="space-y-4">
+                                    {upcomingTrips.map((trip) => (
+                                        <div
+                                            key={trip._id || trip.id}
+                                            className="glass-card p-4 flex items-center gap-4 cursor-pointer"
+                                            onClick={() => window.location.href = '/trips'}
+                                        >
+                                            <div className="w-16 h-16 rounded-lg flex items-center justify-center text-3xl"
+                                                style={{ background: 'linear-gradient(135deg, #1a4a5c, #2d6a7c)' }}>
+                                                ✈️
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="luxury-text font-semibold text-lg">{trip.destination}</h4>
+                                                <p className="luxury-text-muted text-sm">
+                                                    {trip.start_date ? new Date(trip.start_date).toLocaleDateString() : 'TBD'}
+                                                    {trip.end_date && ` - ${new Date(trip.end_date).toLocaleDateString()}`}
+                                                </p>
+                                            </div>
+                                            <span className="px-3 py-1 rounded-full text-xs"
+                                                style={{ backgroundColor: 'rgba(196, 163, 90, 0.2)', color: '#c4a35a' }}>
+                                                {trip.status || 'Planned'}
+                                            </span>
                                         </div>
-                                        <div className="flex-1">
-                                            <h4 className="font-semibold" style={textPrimaryStyle}>{quest.name || 'Quest'}</h4>
-                                            <p className="text-sm" style={textSecondaryStyle}>{quest.location || 'Unknown location'}</p>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Active Quests */}
+                        <div className="glass-card p-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <p className="luxury-subheading mb-2">SUSTAINABLE ADVENTURES</p>
+                                    <h2 className="luxury-heading-gold text-3xl">Active Quests</h2>
+                                </div>
+                                <Link to="/quests" className="gold-button-outline text-sm">Explore</Link>
+                            </div>
+
+                            {loading ? (
+                                <div className="text-center py-8">
+                                    <p className="luxury-text-muted">Loading quests...</p>
+                                </div>
+                            ) : activeQuests.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <p className="luxury-text-muted mb-4">Discover sustainable quests at your destination</p>
+                                    <Link to="/quests" className="gold-button">Find Quests</Link>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {activeQuests.map((quest) => (
+                                        <div
+                                            key={quest._id || quest.id}
+                                            className="glass-card p-4 text-center cursor-pointer"
+                                            onClick={() => window.location.href = '/quests'}
+                                        >
+                                            <div className="text-3xl mb-2">🎯</div>
+                                            <h4 className="luxury-text font-medium mb-1">{quest.name || 'Quest'}</h4>
+                                            <p className="luxury-text-muted text-xs mb-2">{quest.location || 'Location'}</p>
+                                            <span style={{ color: '#c4a35a' }} className="font-bold">{quest.points || 0} pts</span>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-bold" style={{ color: themeColors.primary }}>{quest.points || 0} pts</p>
-                                            <p className="text-xs" style={textSecondaryStyle}>{quest.difficulty || 'Medium'}</p>
-                                        </div>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="rounded-lg shadow-lg p-6 mt-6" style={cardStyle}>
-                        <h3 className="text-xl font-bold mb-6" style={textPrimaryStyle}>Recent Activity</h3>
-                        <div className="space-y-4">
-                            {recentActivity.map((activity, index) => (
-                                <div key={index} className="flex items-center space-x-3 p-3 border-l-2" style={{ borderColor: themeColors.border }}>
-                                    <span className="text-2xl">{activity.icon}</span>
-                                    <div>
-                                        <p style={textPrimaryStyle}>{activity.message}</p>
-                                        <p className="text-xs" style={textSecondaryStyle}>{activity.time}</p>
-                                    </div>
+                    {/* Right Sidebar */}
+                    <div className="space-y-6">
+
+                        {/* Recent Activity */}
+                        <div className="glass-card p-6">
+                            <h3 className="luxury-heading-gold text-xl mb-6">Recent Activity</h3>
+                            {recentActivity.length === 0 ? (
+                                <div className="text-center py-6">
+                                    <p className="luxury-text-muted text-sm">No recent activity</p>
+                                    <p className="luxury-text-muted text-xs mt-2">Create a trip or complete a quest!</p>
                                 </div>
-                            ))}
+                            ) : (
+                                <div className="space-y-4">
+                                    {recentActivity.map((activity, index) => (
+                                        <div key={index} className="flex items-start gap-3 border-l-2 border-[#c4a35a] pl-4">
+                                            <span className="text-xl">{activity.icon}</span>
+                                            <div>
+                                                <p className="luxury-text text-sm">{activity.message}</p>
+                                                <p className="luxury-text-muted text-xs">{activity.time}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    </div>
-                </div>
 
-                {/* Sidebar */}
-                <div className="space-y-6">
-                    <div className="rounded-lg shadow-lg p-6" style={cardStyle}>
-                        <h3 className="text-xl font-bold mb-4" style={textPrimaryStyle}>Upcoming Trips</h3>
-                        <div className="space-y-4">
-                            <div className="text-center py-4" style={textSecondaryStyle}>
-                                <p>No upcoming trips</p>
+                        {/* Quick Actions */}
+                        <div className="glass-card p-6">
+                            <h3 className="luxury-heading-gold text-xl mb-6">Quick Actions</h3>
+                            <div className="space-y-3">
+                                <Link to="/quests" className="block glass-card p-4 text-center hover:bg-[rgba(255,255,255,0.08)]">
+                                    <span className="luxury-text">🎯 Find Nearby Quests</span>
+                                </Link>
+                                <Link to="/heatmap" className="block glass-card p-4 text-center hover:bg-[rgba(255,255,255,0.08)]">
+                                    <span className="luxury-text">🗺️ View Crowd Heatmap</span>
+                                </Link>
+                                <Link to="/chat" className="block glass-card p-4 text-center hover:bg-[rgba(255,255,255,0.08)]">
+                                    <span className="luxury-text">💬 AI Travel Assistant</span>
+                                </Link>
                             </div>
                         </div>
-                        <Link
-                            to="/trips"
-                            className="w-full mt-4 text-white py-2 px-4 rounded-lg hover:opacity-90 transition block text-center"
-                            style={{ backgroundColor: themeColors.primary }}
-                        >
-                            Plan a Trip
-                        </Link>
-                    </div>
 
-                    <div className="rounded-lg shadow-lg p-6" style={cardStyle}>
-                        <h3 className="text-xl font-bold mb-4" style={textPrimaryStyle}>Top Explorers</h3>
-                        <div className="space-y-3">
-                            <div className="text-center py-4" style={textSecondaryStyle}>
-                                <p>Start completing quests to join the leaderboard!</p>
+                        {/* Top Explorers Placeholder */}
+                        <div className="glass-card p-6">
+                            <h3 className="luxury-heading-gold text-xl mb-4">Top Explorers</h3>
+                            <div className="text-center py-4">
+                                <p className="luxury-text-muted text-sm">Complete quests to join the leaderboard!</p>
                             </div>
-                        </div>
-                    </div>
-
-                    <div className="rounded-lg shadow-lg p-6 text-white" style={{ background: getThemeStyles.gradient }}>
-                        <h3 className="text-xl font-bold mb-4">Quick Actions</h3>
-                        <div className="space-y-3">
-                            <Link to="/quests" className="w-full bg-white/20 hover:bg-white/30 backdrop-blur py-2 px-4 rounded-lg transition block text-center">
-                                Find Nearby Quests
-                            </Link>
-                            <Link to="/heatmap" className="w-full bg-white/20 hover:bg-white/30 backdrop-blur py-2 px-4 rounded-lg transition block text-center">
-                                View Crowd Heatmap
-                            </Link>
-                            <Link to="/chat" className="w-full bg-white/20 hover:bg-white/30 backdrop-blur py-2 px-4 rounded-lg transition block text-center">
-                                Chat with Locals
-                            </Link>
                         </div>
                     </div>
                 </div>

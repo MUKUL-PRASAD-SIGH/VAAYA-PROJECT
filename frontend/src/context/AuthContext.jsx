@@ -12,6 +12,7 @@ import {
     linkWithPhoneNumber
 } from 'firebase/auth'
 import { auth, googleProvider } from '../firebaseConfig'
+import { userApi } from '../services/api'
 
 const AuthContext = createContext()
 
@@ -183,18 +184,30 @@ export function AuthProvider({ children }) {
                 // Get token and save to localStorage for API calls
                 try {
                     const token = await user.getIdToken()
-                    localStorage.setItem('token', token)
+                    localStorage.setItem('firebase_token', token)
                     localStorage.setItem('user', JSON.stringify({
                         uid: user.uid,
                         email: user.email,
                         displayName: user.displayName,
                         photoURL: user.photoURL
                     }))
+
+                    // Sync with backend to get Backend JWT
+                    try {
+                        const backendResponse = await userApi.getMe()
+                        if (backendResponse.data.token) {
+                            localStorage.setItem('token', backendResponse.data.token)
+                            console.log("Backend token synced")
+                        }
+                    } catch (backendErr) {
+                        console.warn("Backend sync failed (user might need onboarding):", backendErr)
+                    }
                 } catch (e) {
                     console.error('Failed to get token', e)
                 }
             } else {
                 localStorage.removeItem('token')
+                localStorage.removeItem('firebase_token')
                 localStorage.removeItem('user')
             }
         })

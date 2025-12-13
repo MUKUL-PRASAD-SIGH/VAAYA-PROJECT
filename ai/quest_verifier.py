@@ -1,14 +1,14 @@
 """
 AI Verification Module for Vaaya Clean-Up Quests
 ------------------------------------------------
-Uses pretrained MobileNetV2 to estimate 'trashiness' in images.
-Computes before vs after cleanliness improvement.
+REAL VERSION - Temporally restored by cherry-pick.
+Note: Requires 'tensorflow', 'numpy', 'pillow' to be installed.
 """
 
-import tensorflow as tf
-import numpy as np
 import math
+import numpy as np
 from PIL import Image
+import tensorflow as tf
 
 # =====================================================
 # ✅ Model Setup
@@ -78,15 +78,12 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     return R * c
 
 # =====================================================
-# 🧠 Main AI Verification Logic
+# 🧠 AI Verification Logic
 # =====================================================
 
 def verify_cleanliness(before_image, after_image, user_gps, quest_gps, radius_m=100):
     """
-    Verifies cleanup based on:
-      - Geolocation distance
-      - Before/After 'trashiness' scores
-      - Confidence threshold
+    Verifies cleanliness using Computer Vision (Trash Detection).
     """
     try:
         # Step 1 — Check proximity

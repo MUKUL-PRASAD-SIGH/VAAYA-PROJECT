@@ -2,6 +2,31 @@ import axios from 'axios'
 
 const API_BASE_URL = 'http://localhost:5000'
 
+// Get user ID for personalized data - prioritizes logged-in user
+const getUserId = () => {
+    // First, check if there's a logged-in user
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr)
+            // Use the user's email or uid as unique identifier
+            if (user.uid) return user.uid
+            if (user.email) return 'email_' + user.email.replace(/[^a-zA-Z0-9]/g, '_')
+            if (user.id) return user.id
+        } catch (e) {
+            console.log('Error parsing user from localStorage:', e)
+        }
+    }
+
+    // Fallback: Generate or retrieve session-based ID for anonymous users
+    let userId = localStorage.getItem('vaaya_user_id')
+    if (!userId) {
+        userId = 'anon_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+        localStorage.setItem('vaaya_user_id', userId)
+    }
+    return userId
+}
+
 // Create axios instance with default config
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -10,13 +35,23 @@ const api = axios.create({
     },
 })
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and user ID
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token')
+        // Choose token based on endpoint
+        const isFirebaseEndpoint = config.url.includes('/users/onboard') ||
+            config.url.includes('/users/me') ||
+            config.url.includes('/ai-messages')
+
+        const token = isFirebaseEndpoint ? localStorage.getItem('firebase_token') : localStorage.getItem('token')
+
         if (token) {
             config.headers.Authorization = `Bearer ${token}`
         }
+        // Always send user ID for personalized data
+        const userId = getUserId()
+        console.log('API Request - X-User-Id:', userId)
+        config.headers['X-User-Id'] = userId
         return config
     },
     (error) => {
@@ -153,6 +188,9 @@ export const hospitalityApi = {
     // Host - Stats & Analytics
     getHostStats: () => api.get('/api/hospitality/host/stats'),
     getHospitalityScore: () => api.get('/api/hospitality/host/score'),
+
+    // Host - Reviews
+    getHostReviews: () => api.get('/api/hospitality/host/reviews'),
 
     // Public - Top Hosts & Scoreboard
     getTopHosts: (city) => api.get('/api/hospitality/top-hosts', { params: { city } }),

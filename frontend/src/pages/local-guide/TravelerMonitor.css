@@ -1,4 +1,4 @@
-/* Traveler Monitor Styles */
+/* Traveler Monitor - Luxury Panorama Glass Style */
 .traveler-monitor {
     display: flex;
     flex-direction: column;
@@ -14,37 +14,43 @@
 
 .stat-item {
     background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 1.5rem;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
 }
 
 .stat-item:hover {
     background: rgba(255, 255, 255, 0.05);
     transform: translateY(-2px);
+    border-color: rgba(196, 163, 90, 0.2);
 }
 
 .stat-item .stat-number {
     display: block;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #fff;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.75rem;
+    font-weight: 600;
+    color: #c4a35a;
     margin-bottom: 0.25rem;
 }
 
 .stat-item .stat-label {
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.5);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .stat-item.active .stat-number {
-    color: #4ade80;
+    color: #22c55e;
 }
 
 .stat-item.completed .stat-number {
-    color: #60a5fa;
+    color: #c4a35a;
 }
 
 /* Filter Tabs */
@@ -63,20 +69,22 @@
     background: transparent;
     border: none;
     border-radius: 10px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.5);
+    font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .filter-tab:hover {
-    color: #fff;
+    color: #f5f5f5;
     background: rgba(255, 255, 255, 0.05);
 }
 
 .filter-tab.active {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-    color: #fff;
+    background: rgba(196, 163, 90, 0.2);
+    color: #c4a35a;
+    border: 1px solid rgba(196, 163, 90, 0.3);
 }
 
 /* Monitor Content */
@@ -99,27 +107,28 @@
     gap: 1rem;
     padding: 1.25rem;
     background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
 }
 
 .traveler-card:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(196, 163, 90, 0.05);
     transform: translateX(4px);
 }
 
 .traveler-card.selected {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    border-color: rgba(102, 126, 234, 0.3);
+    background: rgba(196, 163, 90, 0.1);
+    border-color: rgba(196, 163, 90, 0.3);
 }
 
 .traveler-avatar {
     position: relative;
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+    background: linear-gradient(135deg, #1a4a5c, #2d6a7c);
     border-radius: 14px;
     display: flex;
     align-items: center;
@@ -134,11 +143,11 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    border: 3px solid #1a1a2e;
+    border: 3px solid #0a1f2e;
 }
 
 .status-dot.active {
-    background: #4ade80;
+    background: #22c55e;
 }
 
 .status-dot.inactive {
@@ -146,7 +155,7 @@
 }
 
 .status-dot.completed {
-    background: #60a5fa;
+    background: #c4a35a;
 }
 
 .traveler-info {
@@ -154,13 +163,15 @@
 }
 
 .traveler-info h4 {
-    color: #fff;
+    font-family: 'Inter', sans-serif;
+    color: #f5f5f5;
     font-size: 1.1rem;
     margin: 0 0 0.25rem;
 }
 
 .traveler-location {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(245, 245, 245, 0.5);
+    font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
     margin: 0 0 0.75rem;
 }
@@ -172,7 +183,8 @@
 }
 
 .quest-name {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(245, 245, 245, 0.7);
+    font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
     white-space: nowrap;
 }
@@ -192,14 +204,15 @@
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(90deg, #c4a35a 0%, #d4b86a 100%);
     border-radius: inherit;
     transition: width 0.5s ease;
 }
 
 .progress-text {
-    color: #92fe9d;
-    font-size: 0.8rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 0.9rem;
     font-weight: 600;
     min-width: 40px;
 }
@@ -212,7 +225,8 @@
 }
 
 .last-active {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(245, 245, 245, 0.4);
+    font-family: 'Inter', sans-serif;
     font-size: 0.8rem;
 }
 
@@ -225,16 +239,18 @@
     font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    color: #f5f5f5;
 }
 
 .chat-btn:hover {
-    background: rgba(102, 126, 234, 0.2);
-    border-color: rgba(102, 126, 234, 0.3);
+    background: rgba(196, 163, 90, 0.2);
+    border-color: rgba(196, 163, 90, 0.3);
 }
 
 /* Traveler Details Panel */
 .traveler-details {
     background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 1.5rem;
@@ -255,7 +271,7 @@
 .details-avatar {
     width: 64px;
     height: 64px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a4a5c, #2d6a7c);
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -268,23 +284,26 @@
 }
 
 .details-info h3 {
-    color: #fff;
-    font-size: 1.25rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 1.5rem;
     margin: 0 0 0.5rem;
+    font-weight: 600;
 }
 
 .status-badge {
     display: inline-block;
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
+    font-family: 'Inter', sans-serif;
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: capitalize;
 }
 
 .status-badge.active {
-    background: rgba(74, 222, 128, 0.2);
-    color: #4ade80;
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
 }
 
 .status-badge.inactive {
@@ -293,8 +312,8 @@
 }
 
 .status-badge.completed {
-    background: rgba(96, 165, 250, 0.2);
-    color: #60a5fa;
+    background: rgba(196, 163, 90, 0.2);
+    color: #c4a35a;
 }
 
 .close-btn {
@@ -303,14 +322,14 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.6);
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .close-btn:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    color: #f5f5f5;
 }
 
 /* Details Stats */
@@ -336,16 +355,20 @@
 
 .detail-stat .stat-value {
     display: block;
-    color: #fff;
-    font-size: 1.1rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 1.2rem;
     font-weight: 600;
 }
 
 .detail-stat .stat-label {
     display: block;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.5);
+    font-size: 0.7rem;
     margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Current Quest Section */
@@ -354,8 +377,11 @@
 }
 
 .current-quest-section h4 {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.5);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     margin: 0 0 0.75rem;
     font-weight: 500;
 }
@@ -371,7 +397,7 @@
 .quest-icon {
     width: 48px;
     height: 48px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    background: linear-gradient(135deg, #1a4a5c, #2d6a7c);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -384,7 +410,8 @@
 }
 
 .quest-details h5 {
-    color: #fff;
+    font-family: 'Inter', sans-serif;
+    color: #f5f5f5;
     font-size: 1rem;
     margin: 0 0 0.75rem;
 }
@@ -396,7 +423,8 @@
 }
 
 .quest-progress span {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.6);
+    font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
 }
 
@@ -410,6 +438,7 @@
 .action-btn {
     padding: 0.875rem 1rem;
     border-radius: 12px;
+    font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
@@ -417,20 +446,20 @@
 }
 
 .action-btn.primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #c4a35a;
     border: none;
-    color: #fff;
+    color: #1a1a1a;
 }
 
 .action-btn.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 24px rgba(196, 163, 90, 0.3);
 }
 
 .action-btn.secondary {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(245, 245, 245, 0.8);
 }
 
 .action-btn.secondary:hover {

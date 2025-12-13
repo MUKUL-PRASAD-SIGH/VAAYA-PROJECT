@@ -120,43 +120,60 @@ export default function Navbar() {
                                     </span>
                                 </button>
                                 {showDropdown && (
-                                    <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-xl py-2 animate-fadeIn" style={getThemeStyles.card}>
-                                        <div className="px-4 py-2 border-b" style={{ borderColor: themeColors.border }}>
-                                            <p className="text-sm truncate" style={{ color: themeColors.text }}>{currentUser.email}</p>
+                                    <div
+                                        className="absolute right-0 mt-2 w-56 rounded-xl shadow-2xl py-2 animate-fadeIn"
+                                        style={{
+                                            background: 'rgba(15, 32, 39, 0.95)',
+                                            backdropFilter: 'blur(20px)',
+                                            border: '1px solid rgba(196, 163, 90, 0.2)'
+                                        }}
+                                    >
+                                        <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                                            <p className="text-sm truncate" style={{ color: '#c4a35a', fontWeight: 500 }}>{getDisplayName()}</p>
+                                            <p className="text-xs truncate" style={{ color: 'rgba(245,245,245,0.5)' }}>{currentUser.email}</p>
                                         </div>
                                         <Link
                                             to="/profile"
-                                            className="block px-4 py-2 hover:opacity-80 transition-opacity"
-                                            style={{ color: themeColors.text }}
+                                            className="block px-4 py-3 transition-all"
+                                            style={{ color: '#f5f5f5' }}
+                                            onMouseEnter={(e) => e.target.style.background = 'rgba(196, 163, 90, 0.1)'}
+                                            onMouseLeave={(e) => e.target.style.background = 'transparent'}
                                             onClick={() => setShowDropdown(false)}
                                         >
-                                            Profile
+                                            👤 Profile
                                         </Link>
                                         <Link
                                             to="/settings"
-                                            className="block px-4 py-2 hover:opacity-80 transition-opacity"
-                                            style={{ color: themeColors.text }}
+                                            className="block px-4 py-3 transition-all"
+                                            style={{ color: '#f5f5f5' }}
+                                            onMouseEnter={(e) => e.target.style.background = 'rgba(196, 163, 90, 0.1)'}
+                                            onMouseLeave={(e) => e.target.style.background = 'transparent'}
                                             onClick={() => setShowDropdown(false)}
                                         >
-                                            Settings
+                                            ⚙️ Settings
                                         </Link>
                                         <Link
                                             to="/personalisation"
-                                            className="block px-4 py-2 hover:opacity-80 transition-opacity"
-                                            style={{ color: themeColors.text }}
+                                            className="block px-4 py-3 transition-all"
+                                            style={{ color: '#f5f5f5' }}
+                                            onMouseEnter={(e) => e.target.style.background = 'rgba(196, 163, 90, 0.1)'}
+                                            onMouseLeave={(e) => e.target.style.background = 'transparent'}
                                             onClick={() => setShowDropdown(false)}
                                         >
-                                            Personalisation
+                                            🎨 Personalisation
                                         </Link>
-                                        <hr className="my-2" style={{ borderColor: themeColors.border }} />
+                                        <hr className="my-2" style={{ borderColor: 'rgba(255,255,255,0.1)' }} />
                                         <button
                                             onClick={() => {
                                                 handleLogout()
                                                 setShowDropdown(false)
                                             }}
-                                            className="block w-full text-left px-4 py-2 text-red-500 hover:opacity-80 transition-opacity"
+                                            className="block w-full text-left px-4 py-3 transition-all"
+                                            style={{ color: '#ef4444' }}
+                                            onMouseEnter={(e) => e.target.style.background = 'rgba(239, 68, 68, 0.1)'}
+                                            onMouseLeave={(e) => e.target.style.background = 'transparent'}
                                         >
-                                            Logout
+                                            🚪 Logout
                                         </button>
                                     </div>
                                 )}

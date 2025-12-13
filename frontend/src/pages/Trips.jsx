@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import CrowdCalendar from '../components/trips/CrowdCalendar'
 import { tripsApi, aiApi } from '../services/api'
-import { useTheme } from '../context/ThemeContext'
 
 export default function Trips() {
-    const { isDarkMode } = useTheme()
     const [formData, setFormData] = useState({
         destination: '',
         startDate: '',
@@ -30,16 +28,6 @@ export default function Trips() {
         district: '-'
     })
 
-    // Dark mode classes
-    const cardClass = isDarkMode ? 'bg-gray-800 rounded-lg shadow-lg' : 'bg-white rounded-lg shadow-lg'
-    const textPrimary = isDarkMode ? 'text-gray-100' : 'text-gray-800'
-    const textSecondary = isDarkMode ? 'text-gray-400' : 'text-gray-600'
-    const textMuted = isDarkMode ? 'text-gray-500' : 'text-gray-500'
-    const borderColor = isDarkMode ? 'border-gray-700' : 'border-gray-200'
-    const inputClass = isDarkMode
-        ? 'bg-gray-700 text-gray-100 border-gray-600 focus:border-purple-500'
-        : 'bg-white text-gray-800 border-gray-300 focus:border-purple-500'
-
     useEffect(() => {
         loadMyTrips()
     }, [])
@@ -57,10 +45,7 @@ export default function Trips() {
 
     const handleInputChange = (e) => {
         const { id, value } = e.target
-        setFormData((prev) => ({
-            ...prev,
-            [id]: value,
-        }))
+        setFormData((prev) => ({ ...prev, [id]: value }))
     }
 
     const handleSubmit = async (e) => {
@@ -69,14 +54,13 @@ export default function Trips() {
         setTripSaved(false)
 
         try {
-            // Generate AI itinerary
             const itineraryResponse = await aiApi.generateItinerary({
                 destination: formData.destination,
                 start_date: formData.startDate,
                 end_date: formData.endDate,
                 budget: formData.budget,
                 purpose: formData.purpose,
-                origin: 'Bengaluru', // Default origin for transportation search
+                origin: 'Bengaluru',
             })
 
             setItinerary(itineraryResponse.data.itinerary || '')
@@ -112,12 +96,9 @@ export default function Trips() {
                 destination: formData.destination,
                 start_date: formData.startDate,
                 end_date: formData.endDate,
-                location_coords: { lat: 12.9716, lng: 77.5946 }, // Default to Bangalore
+                location_coords: { lat: 12.9716, lng: 77.5946 },
                 country_code: 'IN',
-                preferences: {
-                    budget: formData.budget,
-                    purpose: formData.purpose
-                }
+                preferences: { budget: formData.budget, purpose: formData.purpose }
             }
             console.log('Saving trip with data:', tripData)
             const response = await tripsApi.create(tripData)
@@ -126,7 +107,6 @@ export default function Trips() {
             loadMyTrips()
         } catch (error) {
             console.error('Error saving trip:', error)
-            console.error('Error response:', error.response?.data)
             alert(`Failed to save trip: ${error.response?.data?.error || error.message}`)
         } finally {
             setSaving(false)
@@ -134,325 +114,332 @@ export default function Trips() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Header */}
-            <div className="mb-8">
-                <h2 className={`text-3xl font-bold ${textPrimary} mb-2`}>Trip Planner 🗺️</h2>
-                <p className={textSecondary}>Plan your perfect trip with AI-powered crowd predictions</p>
-            </div>
+        <div className="min-h-screen luxury-bg-aurora luxury-scrollbar">
+            <div className="container mx-auto px-6 py-12 relative z-10">
 
-            {/* Create Trip Section */}
-            <div className={`${cardClass} p-8 mb-8`}>
-                <h3 className={`text-2xl font-bold ${textPrimary} mb-6`}>Plan a New Trip</h3>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className={`block ${textSecondary} font-semibold mb-2`}>Destination</label>
-                            <input
-                                type="text"
-                                id="destination"
-                                value={formData.destination}
-                                onChange={handleInputChange}
-                                className={`w-full px-4 py-3 rounded-lg border ${inputClass}`}
-                                placeholder="e.g., Mysuru, Hampi, Coorg, Gokarna, Udupi"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className={`block ${textSecondary} font-semibold mb-2`}>Start Date</label>
-                            <input
-                                type="date"
-                                id="startDate"
-                                value={formData.startDate}
-                                onChange={handleInputChange}
-                                className={`w-full px-4 py-3 rounded-lg border ${inputClass}`}
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className={`block ${textSecondary} font-semibold mb-2`}>End Date</label>
-                            <input
-                                type="date"
-                                id="endDate"
-                                value={formData.endDate}
-                                onChange={handleInputChange}
-                                className={`w-full px-4 py-3 rounded-lg border ${inputClass}`}
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className={`block ${textSecondary} font-semibold mb-2`}>Budget</label>
-                            <select
-                                id="budget"
-                                value={formData.budget}
-                                onChange={handleInputChange}
-                                className={`w-full px-4 py-3 rounded-lg border ${inputClass}`}
-                                required
-                            >
-                                <option value="">Select budget range</option>
-                                <option value="budget">Budget (₹5,000-15,000)</option>
-                                <option value="moderate">Moderate (₹15,000-30,000)</option>
-                                <option value="luxury">Luxury (₹30,000+)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className={`block ${textSecondary} font-semibold mb-2`}>Purpose of Visit</label>
-                            <select
-                                id="purpose"
-                                value={formData.purpose}
-                                onChange={handleInputChange}
-                                className={`w-full px-4 py-3 rounded-lg border ${inputClass}`}
-                                required
-                            >
-                                <option value="">Select purpose</option>
-                                <option value="leisure">Leisure & Relaxation</option>
-                                <option value="adventure">Adventure & Sports</option>
-                                <option value="culture">Cultural & Heritage</option>
-                                <option value="pilgrimage">Religious & Pilgrimage</option>
-                                <option value="food">Food & Culinary</option>
-                                <option value="nature">Nature & Wildlife</option>
-                                <option value="shopping">Shopping & Entertainment</option>
-                                <option value="business">Business & Work</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition shadow-lg disabled:opacity-50"
-                    >
-                        {loading ? 'Generating...' : 'Generate Trip Plan with AI 🚀'}
-                    </button>
-                </form>
-
-                {/* Save Trip Button - appears after results */}
-                {showResults && !tripSaved && (
-                    <button
-                        onClick={handleSaveTrip}
-                        disabled={saving}
-                        className="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 px-6 rounded-lg hover:from-green-600 hover:to-emerald-700 transition shadow-lg disabled:opacity-50"
-                    >
-                        {saving ? 'Saving...' : '💾 Save Trip to My Trips'}
-                    </button>
-                )}
-                {tripSaved && (
-                    <div className="w-full mt-4 bg-green-100 text-green-800 font-semibold py-3 px-6 rounded-lg text-center">
-                        ✅ Trip saved successfully!
-                    </div>
-                )}
-            </div>
-
-            {/* Trip Results */}
-            {showResults && (
-                <div className="fade-in space-y-8">
-                    {/* Crowd Calendar */}
-                    <div className={`${cardClass} p-8`}>
-                        <h3 className={`text-2xl font-bold ${textPrimary} mb-6`}>📅 Daily Crowd Intensity Calendar</h3>
-
-                        <CrowdCalendar
-                            destination={formData.destination}
-                            startDate={formData.startDate}
-                            endDate={formData.endDate}
-                            onStatsUpdate={setCalendarStats}
-                        />
-
-                        {/* Trip Stats */}
-                        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
-                                <div className="text-sm text-gray-600 mb-1">Trip Duration</div>
-                                <div className="text-2xl font-bold text-purple-700">{calendarStats.tripDuration}</div>
-                            </div>
-                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
-                                <div className="text-sm text-gray-600 mb-1">Average Crowd</div>
-                                <div className="text-2xl font-bold text-blue-700">{calendarStats.avgCrowd}/10</div>
-                            </div>
-                            <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg">
-                                <div className="text-sm text-gray-600 mb-1">Peak Crowd Day</div>
-                                <div className="text-2xl font-bold text-red-700">{calendarStats.peakDay}</div>
-                            </div>
-                            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
-                                <div className="text-sm text-gray-600 mb-1">Quietest Day</div>
-                                <div className="text-2xl font-bold text-green-700">{calendarStats.quietDay}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* AI-Generated Itinerary */}
-                    <div className={`${cardClass} p-8`}>
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className={`text-2xl font-bold ${textPrimary}`}>AI-Generated Itinerary 🤖</h3>
-                            <button
-                                onClick={handleSubmit}
-                                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
-                            >
-                                Regenerate
-                            </button>
-                        </div>
-                        <div className="prose max-w-none">
-                            <pre className={`whitespace-pre-wrap ${textSecondary} font-sans`}>
-                                {itinerary}
-                            </pre>
-                        </div>
-                    </div>
-
-                    {/* Transportation Options from Serper API */}
-                    {transportation && (transportation.flights?.length > 0 || transportation.trains?.length > 0) && (
-                        <div className={`${cardClass} p-8`}>
-                            <h3 className={`text-2xl font-bold ${textPrimary} mb-6`}>🚀 Transportation Options</h3>
-                            <p className={`${textMuted} text-sm mb-4`}>Powered by Google Search</p>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                {/* Flights */}
-                                {transportation.flights?.length > 0 && (
-                                    <div>
-                                        <h4 className={`text-lg font-semibold ${textPrimary} mb-3`}>✈️ Flights</h4>
-                                        <div className="space-y-3">
-                                            {transportation.flights.slice(0, 5).map((flight, idx) => (
-                                                <a
-                                                    key={idx}
-                                                    href={flight.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className={`block p-4 border ${borderColor} rounded-lg hover:border-purple-400 transition`}
-                                                >
-                                                    <div className="flex justify-between items-start">
-                                                        <div>
-                                                            <p className={`font-medium ${textPrimary}`}>{flight.airline || 'Flight'}</p>
-                                                            <p className={`text-sm ${textMuted}`}>{flight.route || `To ${formData.destination}`}</p>
-                                                        </div>
-                                                        <span className="text-green-600 font-bold">{flight.fare}</span>
-                                                    </div>
-                                                </a>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Trains */}
-                                {transportation.trains?.length > 0 && (
-                                    <div>
-                                        <h4 className={`text-lg font-semibold ${textPrimary} mb-3`}>🚂 Trains</h4>
-                                        <div className="space-y-3">
-                                            {transportation.trains.slice(0, 5).map((train, idx) => (
-                                                <a
-                                                    key={idx}
-                                                    href={train.link}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className={`block p-4 border ${borderColor} rounded-lg hover:border-purple-400 transition`}
-                                                >
-                                                    <div className="flex justify-between items-start">
-                                                        <div>
-                                                            <p className={`font-medium ${textPrimary}`}>{train.name || 'Train'}</p>
-                                                            <p className={`text-sm ${textMuted}`}>{train.duration || train.route || `To ${formData.destination}`}</p>
-                                                        </div>
-                                                        <span className="text-green-600 font-bold">{train.fare}</span>
-                                                    </div>
-                                                </a>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Hotels from Serper API */}
-                    {hotels.length > 0 && (
-                        <div className={`${cardClass} p-8`}>
-                            <h3 className={`text-2xl font-bold ${textPrimary} mb-6`}>🏨 Recommended Hotels</h3>
-                            <p className={`${textMuted} text-sm mb-4`}>Prices and availability from Google Search</p>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {hotels.slice(0, 9).map((hotel, idx) => (
-                                    <a
-                                        key={idx}
-                                        href={hotel.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={`block p-4 border ${borderColor} rounded-lg hover:border-purple-400 hover:shadow-md transition`}
-                                    >
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h4 className={`font-semibold ${textPrimary} text-sm`}>{hotel.name}</h4>
-                                        </div>
-                                        <p className={`text-xs ${textMuted} mb-2 line-clamp-2`}>{hotel.description}</p>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-green-600 font-bold">{hotel.fare}</span>
-                                            <span className={`text-xs ${textMuted}`}>{hotel.source}</span>
-                                        </div>
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Weather Forecast */}
-                    <div className={`${cardClass} p-8`}>
-                        <h3 className={`text-2xl font-bold ${textPrimary} mb-6`}>Weather Forecast ☀️</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                            {[...Array(7)].map((_, index) => (
-                                <div key={index} className={`text-center p-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg`}>
-                                    <p className={`text-sm ${textMuted}`}>Day {index + 1}</p>
-                                    <p className="text-3xl my-2">☀️</p>
-                                    <p className={`font-bold ${textPrimary}`}>28°C</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                {/* Hero Header */}
+                <div className="text-center mb-12">
+                    <p className="luxury-subheading mb-4">PLAN YOUR JOURNEY</p>
+                    <h1 className="luxury-heading text-5xl md:text-6xl mb-4">
+                        <span className="luxury-heading-gold">Trip Planner</span>
+                    </h1>
+                    <p className="luxury-text-muted max-w-2xl mx-auto">
+                        Create unforgettable adventures with AI-powered crowd predictions
+                    </p>
                 </div>
-            )}
 
-            {/* My Trips */}
-            <div className={`${cardClass} p-8 mt-8`}>
-                <h3 className={`text-2xl font-bold ${textPrimary} mb-6`}>My Trips</h3>
-                <div className="space-y-4">
-                    {tripsLoading ? (
-                        <div className={`text-center py-8 ${textMuted}`}>
-                            <p>Loading your trips...</p>
+                {/* Create Trip Form */}
+                <div className="glass-card p-8 mb-12">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <p className="luxury-subheading mb-2">NEW ADVENTURE</p>
+                            <h2 className="luxury-heading-gold text-3xl">Plan Your Trip</h2>
                         </div>
-                    ) : myTrips.length === 0 ? (
-                        <div className={`text-center py-8 ${textMuted}`}>
-                            <p>No trips planned yet. Create your first trip above!</p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div>
+                                <label className="luxury-subheading block mb-2">DESTINATION</label>
+                                <input
+                                    type="text"
+                                    id="destination"
+                                    value={formData.destination}
+                                    onChange={handleInputChange}
+                                    className="w-full luxury-input"
+                                    placeholder="e.g., Mysuru, Hampi, Coorg"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="luxury-subheading block mb-2">FROM</label>
+                                <input
+                                    type="date"
+                                    id="startDate"
+                                    value={formData.startDate}
+                                    onChange={handleInputChange}
+                                    className="w-full luxury-input"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="luxury-subheading block mb-2">TO</label>
+                                <input
+                                    type="date"
+                                    id="endDate"
+                                    value={formData.endDate}
+                                    onChange={handleInputChange}
+                                    className="w-full luxury-input"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="luxury-subheading block mb-2">BUDGET</label>
+                                <select
+                                    id="budget"
+                                    value={formData.budget}
+                                    onChange={handleInputChange}
+                                    className="w-full luxury-input"
+                                    required
+                                >
+                                    <option value="">Select budget</option>
+                                    <option value="budget">Budget (₹5,000-15,000)</option>
+                                    <option value="moderate">Moderate (₹15,000-30,000)</option>
+                                    <option value="luxury">Luxury (₹30,000+)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="luxury-subheading block mb-2">PURPOSE</label>
+                                <select
+                                    id="purpose"
+                                    value={formData.purpose}
+                                    onChange={handleInputChange}
+                                    className="w-full luxury-input"
+                                    required
+                                >
+                                    <option value="">Select purpose</option>
+                                    <option value="leisure">Leisure & Relaxation</option>
+                                    <option value="adventure">Adventure & Sports</option>
+                                    <option value="culture">Cultural & Heritage</option>
+                                    <option value="pilgrimage">Religious & Pilgrimage</option>
+                                    <option value="food">Food & Culinary</option>
+                                    <option value="nature">Nature & Wildlife</option>
+                                </select>
+                            </div>
                         </div>
-                    ) : (
-                        myTrips.map((trip) => (
-                            <div
-                                key={trip._id || trip.id}
-                                className={`p-4 border ${borderColor} rounded-lg hover:border-purple-300 transition`}
-                            >
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        <h4 className={`font-semibold ${textPrimary}`}>{trip.destination}</h4>
-                                        <p className={`text-sm ${textMuted}`}>
-                                            {trip.start_date} - {trip.end_date}
-                                        </p>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="gold-button w-full md:w-auto"
+                        >
+                            {loading ? 'Generating...' : 'Generate Trip Plan'}
+                        </button>
+                    </form>
+
+                    {showResults && !tripSaved && (
+                        <button
+                            onClick={handleSaveTrip}
+                            disabled={saving}
+                            className="gold-button-outline w-full md:w-auto mt-4"
+                        >
+                            {saving ? 'Saving...' : '💾 Save Trip'}
+                        </button>
+                    )}
+                    {tripSaved && (
+                        <div className="mt-4 p-4 rounded-lg text-center" style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)', color: '#22c55e' }}>
+                            ✅ Trip saved successfully!
+                        </div>
+                    )}
+                </div>
+
+                {/* Trip Results */}
+                {showResults && (
+                    <div className="space-y-8 fade-in">
+
+                        {/* Crowd Calendar */}
+                        <div className="glass-card p-8">
+                            <div className="mb-6">
+                                <p className="luxury-subheading mb-2">CROWD PREDICTIONS</p>
+                                <h2 className="luxury-heading-gold text-2xl">Daily Crowd Intensity</h2>
+                            </div>
+
+                            <CrowdCalendar
+                                destination={formData.destination}
+                                startDate={formData.startDate}
+                                endDate={formData.endDate}
+                                onStatsUpdate={setCalendarStats}
+                            />
+
+                            {/* Trip Stats */}
+                            <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="luxury-stat-card">
+                                    <div className="luxury-stat-value text-2xl">{calendarStats.tripDuration}</div>
+                                    <div className="luxury-stat-label">Duration</div>
+                                </div>
+                                <div className="luxury-stat-card">
+                                    <div className="luxury-stat-value text-2xl">{calendarStats.avgCrowd}/10</div>
+                                    <div className="luxury-stat-label">Avg Crowd</div>
+                                </div>
+                                <div className="luxury-stat-card">
+                                    <div className="luxury-stat-value text-2xl">{calendarStats.peakDay}</div>
+                                    <div className="luxury-stat-label">Peak Day</div>
+                                </div>
+                                <div className="luxury-stat-card">
+                                    <div className="luxury-stat-value text-2xl">{calendarStats.quietDay}</div>
+                                    <div className="luxury-stat-label">Quietest</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* AI Itinerary */}
+                        <div className="glass-card p-8">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <p className="luxury-subheading mb-2">AI-POWERED</p>
+                                    <h2 className="luxury-heading-gold text-2xl">Your Itinerary</h2>
+                                </div>
+                                <button onClick={handleSubmit} className="gold-button-outline text-sm">
+                                    Regenerate
+                                </button>
+                            </div>
+                            <div className="luxury-text whitespace-pre-wrap font-light leading-relaxed">
+                                {itinerary}
+                            </div>
+                        </div>
+
+                        {/* Transportation */}
+                        {transportation && (transportation.flights?.length > 0 || transportation.trains?.length > 0) && (
+                            <div className="glass-card p-8">
+                                <div className="mb-6">
+                                    <p className="luxury-subheading mb-2">TRAVEL OPTIONS</p>
+                                    <h2 className="luxury-heading-gold text-2xl">Transportation</h2>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {transportation.flights?.length > 0 && (
+                                        <div>
+                                            <h4 className="luxury-text font-semibold mb-4">✈️ Flights</h4>
+                                            <div className="space-y-3">
+                                                {transportation.flights.slice(0, 5).map((flight, idx) => (
+                                                    <a
+                                                        key={idx}
+                                                        href={flight.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="block glass-card p-4 hover:bg-[rgba(255,255,255,0.08)]"
+                                                    >
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <p className="luxury-text font-medium">{flight.airline || 'Flight'}</p>
+                                                                <p className="luxury-text-muted text-sm">{flight.route || `To ${formData.destination}`}</p>
+                                                            </div>
+                                                            <span style={{ color: '#c4a35a' }} className="font-bold">{flight.fare}</span>
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {transportation.trains?.length > 0 && (
+                                        <div>
+                                            <h4 className="luxury-text font-semibold mb-4">🚂 Trains</h4>
+                                            <div className="space-y-3">
+                                                {transportation.trains.slice(0, 5).map((train, idx) => (
+                                                    <a
+                                                        key={idx}
+                                                        href={train.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="block glass-card p-4 hover:bg-[rgba(255,255,255,0.08)]"
+                                                    >
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <p className="luxury-text font-medium">{train.name || 'Train'}</p>
+                                                                <p className="luxury-text-muted text-sm">{train.duration || train.route}</p>
+                                                            </div>
+                                                            <span style={{ color: '#c4a35a' }} className="font-bold">{train.fare}</span>
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Hotels */}
+                        {hotels.length > 0 && (
+                            <div className="glass-card p-8">
+                                <div className="mb-6">
+                                    <p className="luxury-subheading mb-2">ACCOMMODATIONS</p>
+                                    <h2 className="luxury-heading-gold text-2xl">Recommended Stays</h2>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {hotels.slice(0, 9).map((hotel, idx) => (
+                                        <a
+                                            key={idx}
+                                            href={hotel.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="block glass-card p-4 hover:bg-[rgba(255,255,255,0.08)]"
+                                        >
+                                            <h4 className="luxury-text font-semibold text-sm mb-2">{hotel.name}</h4>
+                                            <p className="luxury-text-muted text-xs mb-2 line-clamp-2">{hotel.description}</p>
+                                            <div className="flex items-center justify-between">
+                                                <span style={{ color: '#c4a35a' }} className="font-bold">{hotel.fare}</span>
+                                                <span className="luxury-text-muted text-xs">{hotel.source}</span>
+                                            </div>
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* My Trips */}
+                <div className="glass-card p-8 mt-12">
+                    <div className="mb-6">
+                        <p className="luxury-subheading mb-2">YOUR ADVENTURES</p>
+                        <h2 className="luxury-heading-gold text-2xl">My Trips</h2>
+                    </div>
+
+                    <div className="space-y-4">
+                        {tripsLoading ? (
+                            <div className="text-center py-8">
+                                <p className="luxury-text-muted">Loading your trips...</p>
+                            </div>
+                        ) : myTrips.length === 0 ? (
+                            <div className="text-center py-8">
+                                <p className="luxury-text-muted">No trips planned yet. Create your first adventure above!</p>
+                            </div>
+                        ) : (
+                            myTrips.map((trip) => (
+                                <div
+                                    key={trip._id || trip.id}
+                                    className="glass-card p-4 flex items-center justify-between"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center text-xl"
+                                            style={{ background: 'linear-gradient(135deg, #1a4a5c, #2d6a7c)' }}>
+                                            ✈️
+                                        </div>
+                                        <div>
+                                            <h4 className="luxury-text font-semibold">{trip.destination}</h4>
+                                            <p className="luxury-text-muted text-sm">
+                                                {trip.start_date} - {trip.end_date}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <span className={`px-3 py-1 ${isDarkMode ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'} rounded-full text-sm`}>
+                                    <span className="px-3 py-1 rounded-full text-xs"
+                                        style={{ backgroundColor: 'rgba(196, 163, 90, 0.2)', color: '#c4a35a' }}>
                                         {trip.status || 'Planned'}
                                     </span>
                                 </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
-
-            {/* Loading Modal */}
-            {loading && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className={`${cardClass} p-8 text-center`}>
-                        <LoadingSpinner size="md" />
-                        <p className={`${textPrimary} font-semibold mt-4`}>Generating your trip plan...</p>
-                        <p className={`${textMuted} text-sm mt-2`}>Using AI to predict crowds and create itinerary</p>
+                            ))
+                        )}
                     </div>
                 </div>
-            )}
+
+                {/* Loading Modal */}
+                {loading && (
+                    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+                        <div className="glass-card p-8 text-center">
+                            <LoadingSpinner size="md" />
+                            <p className="luxury-text font-semibold mt-4">Generating your trip plan...</p>
+                            <p className="luxury-text-muted text-sm mt-2">AI is predicting crowds and creating your itinerary</p>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

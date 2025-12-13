@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { useTheme } from '../../context/ThemeContext'
 import { userApi } from '../../services/api'
 
 export default function Login() {
@@ -11,30 +10,67 @@ export default function Login() {
     const [localError, setLocalError] = useState('')
 
     const { login, loginWithGoogle, error, clearError, currentUser } = useAuth()
-    const { getThemeStyles, themeColors } = useTheme()
     const navigate = useNavigate()
     const location = useLocation()
 
-    // Get redirect route based on user role
     const getRedirectRoute = () => {
         const userRole = localStorage.getItem('userRole')
         return userRole === 'local' ? '/local-guide' : '/dashboard'
     }
-    const from = location.state?.from?.pathname || getRedirectRoute()
 
-    // Redirect if already logged in based on role
+    // Check if user has completed onboarding
+    const checkOnboardingAndRedirect = async (user) => {
+        // First check backend
+        try {
+            const response = await userApi.getMe()
+            const userData = response.data?.user
+            if (userData?.preferences?.onboarding_completed) {
+                const isLocal = userData.role === 'local'
+                localStorage.setItem('userRole', isLocal ? 'local' : 'tourist')
+                localStorage.setItem('userPreferences', JSON.stringify({ ...userData.preferences, onboardingCompleted: true }))
+                navigate(isLocal ? '/local-guide' : '/dashboard', { replace: true })
+                return
+            }
+        } catch (e) {
+            console.log('Backend check failed, using local check')
+        }
+
+        // Check localStorage
+        const prefs = localStorage.getItem('userPreferences')
+        if (prefs) {
+            try {
+                const parsed = JSON.parse(prefs)
+                if (parsed.onboardingCompleted) {
+                    navigate(getRedirectRoute(), { replace: true })
+                    return
+                }
+            } catch (e) { }
+        }
+
+        // Check if user is truly new (created within last 5 minutes)
+        const creationTime = user?.metadata?.creationTime
+        if (creationTime) {
+            const created = new Date(creationTime)
+            const now = new Date()
+            const diffMinutes = (now - created) / 60000
+            if (diffMinutes < 5) {
+                // New user - go to onboarding
+                navigate('/onboarding', { replace: true })
+                return
+            }
+        }
+
+        // Default: if no onboarding completed flag, go to onboarding
+        navigate('/onboarding', { replace: true })
+    }
+
     if (currentUser) {
-        const redirectPath = getRedirectRoute()
-        return <Navigate to={redirectPath} replace />
+        return <Navigate to={getRedirectRoute()} replace />
     }
 
     async function handleSubmit(e) {
         e.preventDefault()
-
-        if (!email || !password) {
-            setLocalError('Please fill in all fields')
-            return
-        }
+        if (!email || !password) { setLocalError('Please fill in all fields'); return }
 
         setIsLoading(true)
         setLocalError('')
@@ -42,61 +78,8 @@ export default function Login() {
 
         try {
             const user = await login(email, password)
-
-            // Email-based role mapping for specific users
-            const localGuideEmails = ['mukulprasad958@gmail.com', '1ms24ci076@msrit.edu']
-            const travelerEmails = ['mukulprasad957@gmail.com', 'vol670668@gmail.com']
-
-            const userEmail = user?.email || email
-
-            // Check if email belongs to a local guide
-            if (localGuideEmails.includes(userEmail.toLowerCase())) {
-                localStorage.setItem('userRole', 'local')
-                localStorage.setItem('userPreferences', JSON.stringify({ onboardingCompleted: true }))
-                navigate('/local-guide', { replace: true })
-                return
-            }
-
-            // Check if email belongs to a traveler
-            if (travelerEmails.includes(userEmail.toLowerCase())) {
-                localStorage.setItem('userRole', 'tourist')
-                localStorage.setItem('userPreferences', JSON.stringify({ onboardingCompleted: true }))
-                navigate('/dashboard', { replace: true })
-                return
-            }
-
-            // Try to fetch user's role from backend (per-account persistence)
-            try {
-                const response = await userApi.getMe()
-                const userData = response.data?.user
-
-                if (userData && userData.preferences?.onboarding_completed) {
-                    // User has completed onboarding - use backend-stored role
-                    const backendRole = userData.role || userData.preference
-                    const isLocal = backendRole === 'local'
-                    localStorage.setItem('userRole', isLocal ? 'local' : 'tourist')
-                    localStorage.setItem('userPreferences', JSON.stringify({
-                        ...userData.preferences,
-                        onboardingCompleted: true
-                    }))
-                    navigate(isLocal ? '/local-guide' : '/dashboard', { replace: true })
-                    return
-                }
-            } catch (apiError) {
-                console.log('Backend user fetch failed, using localStorage fallback:', apiError)
-            }
-
-            // Fallback to localStorage check
-            const prefs = localStorage.getItem('userPreferences')
-            const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
-            if (onboardingCompleted) {
-                const userRole = localStorage.getItem('userRole')
-                navigate(userRole === 'local' ? '/local-guide' : '/dashboard', { replace: true })
-            } else {
-                navigate('/onboarding', { replace: true })
-            }
+            await checkOnboardingAndRedirect(user)
         } catch (err) {
-            // Error is handled by AuthContext
             console.error('Login failed:', err)
         } finally {
             setIsLoading(false)
@@ -111,58 +94,24 @@ export default function Login() {
         try {
             const user = await loginWithGoogle()
 
-            // Email-based role mapping for specific users
-            const localGuideEmails = ['mukulprasad958@gmail.com', '1ms24ci076@msrit.edu']
-            const travelerEmails = ['mukulprasad957@gmail.com', 'vol670668@gmail.com']
+            // Check if this is a brand new Google user (created just now)
+            const creationTime = user?.metadata?.creationTime
+            const lastSignIn = user?.metadata?.lastSignInTime
 
-            const userEmail = user?.email || ''
+            if (creationTime && lastSignIn) {
+                const created = new Date(creationTime)
+                const lastLogin = new Date(lastSignIn)
+                const diffMs = Math.abs(lastLogin - created)
 
-            // Check if email belongs to a local guide
-            if (localGuideEmails.includes(userEmail.toLowerCase())) {
-                localStorage.setItem('userRole', 'local')
-                localStorage.setItem('userPreferences', JSON.stringify({ onboardingCompleted: true }))
-                navigate('/local-guide', { replace: true })
-                return
-            }
-
-            // Check if email belongs to a traveler
-            if (travelerEmails.includes(userEmail.toLowerCase())) {
-                localStorage.setItem('userRole', 'tourist')
-                localStorage.setItem('userPreferences', JSON.stringify({ onboardingCompleted: true }))
-                navigate('/dashboard', { replace: true })
-                return
-            }
-
-            // Try to fetch user's role from backend (per-account persistence)
-            try {
-                const response = await userApi.getMe()
-                const userData = response.data?.user
-
-                if (userData && userData.preferences?.onboarding_completed) {
-                    // User has completed onboarding - use backend-stored role
-                    const backendRole = userData.role || userData.preference
-                    const isLocal = backendRole === 'local'
-                    localStorage.setItem('userRole', isLocal ? 'local' : 'tourist')
-                    localStorage.setItem('userPreferences', JSON.stringify({
-                        ...userData.preferences,
-                        onboardingCompleted: true
-                    }))
-                    navigate(isLocal ? '/local-guide' : '/dashboard', { replace: true })
+                // If creation time and last sign in are within 10 seconds, this is first signup
+                if (diffMs < 10000) {
+                    localStorage.removeItem('userPreferences') // Clear any old prefs
+                    navigate('/onboarding', { replace: true })
                     return
                 }
-            } catch (apiError) {
-                console.log('Backend user fetch failed, using localStorage fallback:', apiError)
             }
 
-            // Fallback to localStorage check
-            const prefs = localStorage.getItem('userPreferences')
-            const onboardingCompleted = prefs && JSON.parse(prefs).onboardingCompleted
-            if (onboardingCompleted) {
-                const userRole = localStorage.getItem('userRole')
-                navigate(userRole === 'local' ? '/local-guide' : '/dashboard', { replace: true })
-            } else {
-                navigate('/onboarding', { replace: true })
-            }
+            await checkOnboardingAndRedirect(user)
         } catch (err) {
             console.error('Google sign-in failed:', err)
         } finally {
@@ -173,130 +122,61 @@ export default function Login() {
     const displayError = localError || error
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4" style={getThemeStyles.pageBackground}>
-            <div className="w-full max-w-md">
-                {/* Logo/Brand */}
+        <div className="min-h-screen luxury-bg-aurora flex items-center justify-center px-4">
+            <div className="w-full max-w-md relative z-10">
+                {/* Logo */}
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold mb-2" style={{ color: themeColors.text }}>
-                        Vaaya
-                    </h1>
-                    <p style={{ color: themeColors.textSecondary }}>
-                        Welcome back! Sign in to continue
-                    </p>
+                    <h1 className="luxury-heading-gold text-5xl mb-3">Vaaya</h1>
+                    <p className="luxury-text-muted">Welcome back! Sign in to continue</p>
                 </div>
 
                 {/* Login Card */}
-                <div className="rounded-2xl p-8 shadow-xl" style={{
-                    background: themeColors.cardBg,
-                    border: `1px solid ${themeColors.border}`
-                }}>
-                    {/* Error Display */}
+                <div className="glass-card p-8">
                     {displayError && (
-                        <div className="mb-6 p-4 rounded-lg text-sm" style={{
-                            background: 'rgba(239, 68, 68, 0.1)',
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                            color: '#ef4444'
-                        }}>
+                        <div className="mb-6 p-4 rounded-lg text-sm" style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444' }}>
                             {displayError}
                         </div>
                     )}
 
-                    {/* Email/Password Form */}
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <label className="block text-sm font-medium mb-2" style={{ color: themeColors.textSecondary }}>
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Enter your email"
-                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 outline-none"
-                                style={{
-                                    background: themeColors.inputBg || themeColors.background,
-                                    border: `1px solid ${themeColors.border}`,
-                                    color: themeColors.text
-                                }}
-                                disabled={isLoading}
-                            />
+                            <label className="luxury-subheading block mb-2">EMAIL</label>
+                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your email" className="w-full luxury-input" disabled={isLoading} />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-2" style={{ color: themeColors.textSecondary }}>
-                                Password
-                            </label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Enter your password"
-                                className="w-full px-4 py-3 rounded-lg transition-all duration-200 outline-none"
-                                style={{
-                                    background: themeColors.inputBg || themeColors.background,
-                                    border: `1px solid ${themeColors.border}`,
-                                    color: themeColors.text
-                                }}
-                                disabled={isLoading}
-                            />
+                            <label className="luxury-subheading block mb-2">PASSWORD</label>
+                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" className="w-full luxury-input" disabled={isLoading} />
                         </div>
 
                         <div className="flex justify-end">
-                            <Link
-                                to="/forgot-password"
-                                className="text-sm hover:underline"
-                                style={{ color: themeColors.accent }}
-                            >
-                                Forgot password?
-                            </Link>
+                            <Link to="/forgot-password" className="text-sm" style={{ color: '#c4a35a' }}>Forgot password?</Link>
                         </div>
 
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full py-3 rounded-lg font-semibold transition-all duration-200 hover:opacity-90 disabled:opacity-50"
-                            style={{
-                                background: `linear-gradient(135deg, ${themeColors.accent}, ${themeColors.accentSecondary || themeColors.accent})`,
-                                color: '#fff'
-                            }}
-                        >
+                        <button type="submit" disabled={isLoading} className="w-full gold-button py-3">
                             {isLoading ? 'Signing in...' : 'Sign In'}
                         </button>
                     </form>
 
-                    {/* Divider */}
-                    <div className="flex items-center my-6">
-                        <div className="flex-1 h-px" style={{ background: themeColors.border }}></div>
-                        <span className="px-4 text-sm" style={{ color: themeColors.textSecondary }}>or</span>
-                        <div className="flex-1 h-px" style={{ background: themeColors.border }}></div>
+                    <div className="my-6 flex items-center">
+                        <div className="flex-1 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}></div>
+                        <span className="px-4 luxury-text-muted text-sm">or</span>
+                        <div className="flex-1 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}></div>
                     </div>
 
-                    {/* Google Sign In */}
-                    <button
-                        onClick={handleGoogleSignIn}
-                        disabled={isLoading}
-                        className="w-full py-3 rounded-lg font-medium transition-all duration-200 hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-3"
-                        style={{
-                            background: themeColors.background,
-                            border: `1px solid ${themeColors.border}`,
-                            color: themeColors.text
-                        }}
-                    >
+                    <button onClick={handleGoogleSignIn} disabled={isLoading} className="w-full flex items-center justify-center gap-3 py-3 rounded gold-button-outline">
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                         </svg>
                         Continue with Google
                     </button>
 
-                    {/* Sign Up Link */}
-                    <p className="text-center mt-6" style={{ color: themeColors.textSecondary }}>
+                    <p className="mt-6 text-center luxury-text-muted text-sm">
                         Don't have an account?{' '}
-                        <Link to="/register" className="font-medium hover:underline" style={{ color: themeColors.accent }}>
-                            Sign up
-                        </Link>
+                        <Link to="/register" style={{ color: '#c4a35a' }}>Sign up</Link>
                     </p>
                 </div>
             </div>

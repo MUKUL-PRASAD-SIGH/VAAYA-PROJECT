@@ -25,7 +25,6 @@ def get_conversations(current_user):
         
         # Sample conversations
         conversations = []
-        
         if conv_type == 'ai':
             conversations = [{
                 'id': 'ai-chatbot',
@@ -133,6 +132,7 @@ def send_message(current_user):
         return jsonify({'error': str(e)}), 500
 
 
+
 # ===========================
 # Community Chat - User to User
 # ===========================
@@ -178,6 +178,12 @@ def get_nearby_travelers(current_user):
         return jsonify({
             'travelers': travelers,
             'count': len(travelers)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
         }), 200
         
     except Exception as e:
@@ -288,6 +294,7 @@ def clear_ai_chat_history():
         return jsonify({'error': str(e)}), 500
 
 
+
 @chat_bp.route('/conversations', methods=['POST'])
 @token_required
 def create_conversation(current_user):
@@ -331,3 +338,4 @@ def create_conversation(current_user):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
