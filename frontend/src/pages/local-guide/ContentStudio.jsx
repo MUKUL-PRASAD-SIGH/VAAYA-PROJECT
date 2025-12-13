@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { localGuideApi } from '../../services/api'
 import { useLanguage } from '../../context/LanguageContext'
 import './ContentStudio.css'
@@ -26,6 +26,36 @@ function ContentStudio() {
         location: '',
         tags: []
     })
+    const [mediaFiles, setMediaFiles] = useState([])
+    const [mediaPreviews, setMediaPreviews] = useState([])
+    const fileInputRef = useRef(null)
+
+    const handleFileSelect = (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const files = Array.from(e.target.files)
+            const validFiles = files.filter(file => {
+                const isImage = file.type.startsWith('image/')
+                const isVideo = file.type.startsWith('video/')
+                const isValidSize = file.size <= 50 * 1024 * 1024
+                return (isImage || isVideo) && isValidSize
+            })
+            if (validFiles.length > 0) {
+                const newPreviews = validFiles.map(file => ({
+                    file,
+                    url: URL.createObjectURL(file),
+                    type: file.type.startsWith('video/') ? 'video' : 'image'
+                }))
+                setMediaFiles([...mediaFiles, ...validFiles])
+                setMediaPreviews([...mediaPreviews, ...newPreviews])
+            }
+        }
+    }
+
+    const removeMedia = (index) => {
+        URL.revokeObjectURL(mediaPreviews[index].url)
+        setMediaFiles(mediaFiles.filter((_, i) => i !== index))
+        setMediaPreviews(mediaPreviews.filter((_, i) => i !== index))
+    }
 
     useEffect(() => {
         loadContent()
@@ -54,20 +84,29 @@ function ContentStudio() {
         }
         try {
             setSaving(true)
+            setMessage({ type: '', text: '' })
+
+            const mediaUrls = mediaPreviews.map(p => p.url)
+
             const response = await localGuideApi.createContent({
                 type: contentType,
                 title: newPost.title,
                 content: newPost.content,
                 location: { name: newPost.location },
                 tags: newPost.tags,
+                media: mediaUrls,
                 status: 'published'
             })
+
             setPosts([response.data.content, ...posts])
             setNewPost({ title: '', content: '', location: '', tags: [] })
+            setMediaFiles([])
+            setMediaPreviews([])
             setMessage({ type: 'success', text: 'Content published successfully!' })
             setActiveTab('posts')
         } catch (error) {
-            setMessage({ type: 'error', text: 'Failed to publish content' })
+            console.error('Publish error:', error)
+            setMessage({ type: 'error', text: error.response?.data?.error || 'Failed to publish content' })
         } finally {
             setSaving(false)
         }
@@ -80,19 +119,29 @@ function ContentStudio() {
         }
         try {
             setSaving(true)
+            setMessage({ type: '', text: '' })
+
+            const mediaUrls = mediaPreviews.map(p => p.url)
+
             const response = await localGuideApi.createContent({
                 type: contentType,
                 title: newPost.title,
                 content: newPost.content,
                 location: { name: newPost.location },
                 tags: newPost.tags,
+                media: mediaUrls,
                 status: 'draft'
             })
+
             setPosts([response.data.content, ...posts])
             setNewPost({ title: '', content: '', location: '', tags: [] })
-            setMessage({ type: 'success', text: 'Draft saved!' })
+            setMediaFiles([])
+            setMediaPreviews([])
+            setMessage({ type: 'success', text: 'Draft saved successfully!' })
+            setActiveTab('drafts')
         } catch (error) {
-            setMessage({ type: 'error', text: 'Failed to save draft' })
+            console.error('Draft error:', error)
+            setMessage({ type: 'error', text: error.response?.data?.error || 'Failed to save draft' })
         } finally {
             setSaving(false)
         }
@@ -111,6 +160,15 @@ function ContentStudio() {
 
     return (
         <div className="content-studio">
+            {/* Message Display */}
+            {message.text && (
+                <div className={`studio-message ${message.type}`}>
+                    <span>{message.type === 'success' ? '✅' : '❌'}</span>
+                    <p>{message.text}</p>
+                    <button onClick={() => setMessage({ type: '', text: '' })}>×</button>
+                </div>
+            )}
+
             {/* Tab Navigation */}
             <div className="studio-tabs">
                 <button
@@ -164,11 +222,60 @@ function ContentStudio() {
                             />
 
                             <div className="media-upload">
-                                <div className="upload-area">
-                                    <span className="upload-icon">📷</span>
-                                    <p>Drag & drop images or videos</p>
-                                    <button className="upload-btn">Browse Files</button>
-                                </div>
+                                {mediaPreviews.length === 0 ? (
+                                    <div className="upload-area">
+                                        <span className="upload-icon">📷</span>
+                                        <p>Drag & drop images or videos</p>
+                                        <button
+                                            type="button"
+                                            className="upload-btn"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                e.stopPropagation()
+                                                fileInputRef.current?.click()
+                                            }}
+                                        >
+                                            Browse Files
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="media-previews">
+                                        {mediaPreviews.map((preview, index) => (
+                                            <div key={index} className="preview-item">
+                                                {preview.type === 'video' ? (
+                                                    <video src={preview.url} />
+                                                ) : (
+                                                    <img src={preview.url} alt="" />
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    className="remove-preview"
+                                                    onClick={() => removeMedia(index)}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            className="add-more-btn"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                fileInputRef.current?.click()
+                                            }}
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                )}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*,video/*"
+                                    multiple
+                                    onChange={handleFileSelect}
+                                    style={{ display: 'none' }}
+                                />
                             </div>
 
                             <textarea

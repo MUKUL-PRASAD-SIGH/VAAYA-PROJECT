@@ -13,7 +13,23 @@ export default function Login() {
     const navigate = useNavigate()
     const location = useLocation()
 
-    const getRedirectRoute = () => {
+    // Hardcoded email routing
+    const USER_EMAILS = ['mukulprasad957@gmail.com', 'vol670668@gmail.com']
+    const LOCAL_EMAILS = ['mukulprasad958@gmail.com', '1ms24ci076@msrit.edu']
+
+    const getRedirectRoute = (userEmail = '') => {
+        // Check hardcoded email routing first
+        if (userEmail) {
+            if (USER_EMAILS.includes(userEmail.toLowerCase())) {
+                localStorage.setItem('userRole', 'tourist')
+                return '/dashboard'
+            }
+            if (LOCAL_EMAILS.includes(userEmail.toLowerCase())) {
+                localStorage.setItem('userRole', 'local')
+                return '/local-guide'
+            }
+        }
+        // Fall back to localStorage
         const userRole = localStorage.getItem('userRole')
         return userRole === 'local' ? '/local-guide' : '/dashboard'
     }
@@ -25,10 +41,9 @@ export default function Login() {
             const response = await userApi.getMe()
             const userData = response.data?.user
             if (userData?.preferences?.onboarding_completed) {
-                const isLocal = userData.role === 'local'
-                localStorage.setItem('userRole', isLocal ? 'local' : 'tourist')
-                localStorage.setItem('userPreferences', JSON.stringify({ ...userData.preferences, onboardingCompleted: true }))
-                navigate(isLocal ? '/local-guide' : '/dashboard', { replace: true })
+                // Use hardcoded email routing instead of backend role
+                const userEmail = user?.email || email
+                navigate(getRedirectRoute(userEmail), { replace: true })
                 return
             }
         } catch (e) {
@@ -41,7 +56,8 @@ export default function Login() {
             try {
                 const parsed = JSON.parse(prefs)
                 if (parsed.onboardingCompleted) {
-                    navigate(getRedirectRoute(), { replace: true })
+                    const userEmail = user?.email || email
+                    navigate(getRedirectRoute(userEmail), { replace: true })
                     return
                 }
             } catch (e) { }
@@ -65,7 +81,7 @@ export default function Login() {
     }
 
     if (currentUser) {
-        return <Navigate to={getRedirectRoute()} replace />
+        return <Navigate to={getRedirectRoute(currentUser?.email)} replace />
     }
 
     async function handleSubmit(e) {

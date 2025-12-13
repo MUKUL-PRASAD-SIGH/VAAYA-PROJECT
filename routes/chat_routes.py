@@ -4,7 +4,25 @@ Chat routes - Messaging and conversations
 from flask import Blueprint, request, jsonify
 from utils.jwt_utils import token_required
 from bson.objectid import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
+from models import db
+
+# Collections
+users_collection = db.users
+user_locations_collection = db.user_locations
+conversations_collection = db.conversations
+messages_collection = db.chat_messages
+
+# Constants
+ONLINE_TIMEOUT_MINUTES = 5
+PREMIUM_CHAT_COST = 50
+
+# Create 2dsphere index for geospatial queries
+try:
+    user_locations_collection.create_index([("location", "2dsphere")])
+    print("[OK] Created 2dsphere index on user_locations.location")
+except Exception as e:
+    print(f"[INFO] 2dsphere index: {e}")
 
 chat_bp = Blueprint('chat', __name__)
 
@@ -184,11 +202,6 @@ def get_nearby_travelers(current_user):
         return jsonify({'error': str(e)}), 500
 
 
-        }), 200
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 
 # ===========================
 # AI Chat History Endpoints
@@ -339,3 +352,449 @@ def create_conversation(current_user):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+# ===========================
+# Location & Nearby Discovery (Demo - no auth)
+# ===========================
+
+@chat_bp.route('/location/update', methods=['POST'])
+def update_user_location():
+    """
+    Update user's current location
+    
+    POST /api/chat/location/update
+    Body: { "user_id": "demo_user", "lat": 12.9716, "lng": 77.5946, "name": "John" }
+    """
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id', 'demo_user')
+        lat = data.get('lat')
+        lng = data.get('lng')
+        name = data.get('name', 'Anonymous')
+        role = data.get('role', 'tourist')
+        
+        if lat is None or lng is None:
+            return jsonify({'error': 'lat and lng are required'}), 400
+        
+        # Upsert user location
+        user_locations_collection.update_one(
+            {'user_id': user_id},
+            {
+                '$set': {
+                    'user_id': user_id,
+                    'name': name,
+                    'role': role,
+                    'location': {
+                        'type': 'Point',
+                        'coordinates': [float(lng), float(lat)]
+                    },
+                    'last_seen': datetime.utcnow(),
+                    'is_online': True
+                }
+            },
+            upsert=True
+        )
+        
+        return jsonify({
+            'message': 'Location updated',
+            'location': {'lat': lat, 'lng': lng}
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@chat_bp.route('/users/nearby', methods=['GET'])
+def get_nearby_users():
+    """
+    Get nearby users within range
+    
+    GET /api/chat/users/nearby?lat=12.9716&lng=77.5946&range=10&role=all
+    """
+    try:
+        lat = float(request.args.get('lat', 12.9716))
+        lng = float(request.args.get('lng', 77.5946))
+        range_km = float(request.args.get('range', 10))
+        role_filter = request.args.get('role', 'all')  # 'all', 'tourist', 'local'
+        current_user_id = request.args.get('user_id', '')
+        
+        # Build query
+        query = {
+            'location': {
+                '$nearSphere': {
+                    '$geometry': {
+                        'type': 'Point',
+                        'coordinates': [lng, lat]
+                    },
+                    '$maxDistance': range_km * 1000  # Convert km to meters
+                }
+            }
+        }
+        
+        if role_filter != 'all':
+            query['role'] = role_filter
+            
+        if current_user_id:
+            query['user_id'] = {'$ne': current_user_id}  # Exclude self
+        
+        # Check online status (within last 5 minutes)
+        online_threshold = datetime.utcnow() - timedelta(minutes=ONLINE_TIMEOUT_MINUTES)
+        
+        users = list(user_locations_collection.find(query).limit(50))
+        
+        result = []
+        for user in users:
+            # Calculate distance
+            user_coords = user.get('location', {}).get('coordinates', [0, 0])
+            dist_km = calculate_distance(lat, lng, user_coords[1], user_coords[0])
+            
+            result.append({
+                '_id': user.get('user_id', str(user.get('_id', ''))),
+                'name': user.get('name', 'Anonymous'),
+                'role': user.get('role', 'tourist'),
+                'distance': f"{dist_km:.1f} km",
+                'distance_km': dist_km,
+                'is_online': user.get('last_seen', datetime.min) > online_threshold,
+                'last_seen': user.get('last_seen', datetime.utcnow()).isoformat()
+            })
+        
+        # Sort by distance
+        result.sort(key=lambda x: x['distance_km'])
+        
+        return jsonify({
+            'users': result,
+            'count': len(result),
+            'range_km': range_km
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@chat_bp.route('/locals/nearby', methods=['GET'])
+def get_nearby_locals():
+    """
+    Get nearby local guides
+    
+    GET /api/chat/locals/nearby?lat=12.9716&lng=77.5946&range=20
+    """
+    try:
+        lat = float(request.args.get('lat', 12.9716))
+        lng = float(request.args.get('lng', 77.5946))
+        range_km = float(request.args.get('range', 20))
+        
+        query = {
+            'role': 'local',
+            'location': {
+                '$nearSphere': {
+                    '$geometry': {
+                        'type': 'Point',
+                        'coordinates': [lng, lat]
+                    },
+                    '$maxDistance': range_km * 1000
+                }
+            }
+        }
+        
+        online_threshold = datetime.utcnow() - timedelta(minutes=ONLINE_TIMEOUT_MINUTES)
+        locals_list = list(user_locations_collection.find(query).limit(30))
+        
+        result = []
+        for local in locals_list:
+            coords = local.get('location', {}).get('coordinates', [0, 0])
+            dist_km = calculate_distance(lat, lng, coords[1], coords[0])
+            
+            result.append({
+                '_id': local.get('user_id', str(local.get('_id', ''))),
+                'name': local.get('name', 'Local Guide'),
+                'role': 'local',
+                'distance': f"{dist_km:.1f} km",
+                'distance_km': dist_km,
+                'is_online': local.get('last_seen', datetime.min) > online_threshold,
+                'rating': local.get('rating', 4.5),
+                'quests_count': local.get('quests_count', 0),
+                'premium_available': True
+            })
+        
+        result.sort(key=lambda x: x['distance_km'])
+        
+        return jsonify({
+            'locals': result,
+            'count': len(result)
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@chat_bp.route('/premium/start', methods=['POST'])
+def start_premium_chat():
+    """
+    Start premium chat with a local guide (costs 50 XP)
+    
+    POST /api/chat/premium/start
+    Body: { "user_id": "tourist_id", "local_id": "local_guide_id" }
+    """
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        local_id = data.get('local_id')
+        
+        if not user_id or not local_id:
+            return jsonify({'error': 'user_id and local_id required'}), 400
+        
+        # Check user points (using users collection)
+        user = users_collection.find_one({'_id': ObjectId(user_id)}) if ObjectId.is_valid(user_id) else None
+        
+        # For demo, create conversation without point check
+        if user:
+            current_points = user.get('points', 0)
+            if current_points < PREMIUM_CHAT_COST:
+                return jsonify({
+                    'error': f'Not enough points. Need {PREMIUM_CHAT_COST} XP, have {current_points} XP'
+                }), 400
+            
+            # Deduct points
+            users_collection.update_one(
+                {'_id': ObjectId(user_id)},
+                {'$inc': {'points': -PREMIUM_CHAT_COST}}
+            )
+        
+        # Create conversation
+        conversation = {
+            'participants': [user_id, local_id],
+            'type': 'premium',
+            'points_cost': PREMIUM_CHAT_COST,
+            'messages': [],
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
+        }
+        
+        result = conversations_collection.insert_one(conversation)
+        
+        return jsonify({
+            'message': 'Premium chat started',
+            'conversation_id': str(result.inserted_id),
+            'points_deducted': PREMIUM_CHAT_COST
+        }), 201
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+def calculate_distance(lat1, lng1, lat2, lng2):
+    """Calculate distance between two points in km using Haversine formula"""
+    import math
+    R = 6371  # Earth's radius in km
+    
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lng = math.radians(lng2 - lng1)
+    
+    a = math.sin(delta_lat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lng/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    
+    return R * c
+
+
+# ===========================
+# Chat Request System
+# ===========================
+
+chat_requests_collection = db.chat_requests
+
+@chat_bp.route('/request/send', methods=['POST'])
+def send_chat_request():
+    """
+    Send chat request from tourist to local
+    
+    POST /api/chat/request/send
+    Body: { "from_user_id": "tourist_id", "from_name": "Tourist Name", "to_local_id": "local_id", "message": "Hi!" }
+    """
+    try:
+        data = request.get_json()
+        from_user_id = data.get('from_user_id')
+        from_name = data.get('from_name', 'Traveler')
+        to_local_id = data.get('to_local_id')
+        message = data.get('message', 'Hi! I would like to chat with you.')
+        
+        if not from_user_id or not to_local_id:
+            return jsonify({'error': 'from_user_id and to_local_id required'}), 400
+        
+        # Check if request already exists
+        existing = chat_requests_collection.find_one({
+            'from_user_id': from_user_id,
+            'to_local_id': to_local_id,
+            'status': 'pending'
+        })
+        
+        if existing:
+            return jsonify({'error': 'Request already pending'}), 400
+        
+        chat_request = {
+            'from_user_id': from_user_id,
+            'from_name': from_name,
+            'to_local_id': to_local_id,
+            'message': message,
+            'status': 'pending',  # pending, approved, rejected
+            'created_at': datetime.utcnow()
+        }
+        
+        result = chat_requests_collection.insert_one(chat_request)
+        
+        return jsonify({
+            'message': 'Chat request sent',
+            'request_id': str(result.inserted_id)
+        }), 201
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@chat_bp.route('/request/pending', methods=['GET'])
+def get_pending_requests():
+    """
+    Get pending chat requests for a local guide
+    
+    GET /api/chat/request/pending?local_id=xyz
+    """
+    try:
+        local_id = request.args.get('local_id')
+        
+        if not local_id:
+            return jsonify({'error': 'local_id required'}), 400
+        
+        requests = list(chat_requests_collection.find({
+            'to_local_id': local_id,
+            'status': 'pending'
+        }).sort('created_at', -1))
+        
+        for req in requests:
+            req['_id'] = str(req['_id'])
+            req['created_at'] = req['created_at'].isoformat()
+        
+        return jsonify({
+            'requests': requests,
+            'count': len(requests)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@chat_bp.route('/request/<request_id>/respond', methods=['POST'])
+def respond_to_request(request_id):
+    """
+    Approve or reject a chat request
+    
+    POST /api/chat/request/<request_id>/respond
+    Body: { "action": "approve" | "reject" }
+    """
+    try:
+        data = request.get_json()
+        action = data.get('action')
+        
+        if action not in ['approve', 'reject']:
+            return jsonify({'error': 'action must be approve or reject'}), 400
+        
+        # Update request status
+        result = chat_requests_collection.update_one(
+            {'_id': ObjectId(request_id)},
+            {'$set': {'status': 'approved' if action == 'approve' else 'rejected'}}
+        )
+        
+        if result.modified_count == 0:
+            return jsonify({'error': 'Request not found'}), 404
+        
+        # If approved, create a conversation
+        if action == 'approve':
+            req = chat_requests_collection.find_one({'_id': ObjectId(request_id)})
+            if req:
+                conversation = {
+                    'participants': [req['from_user_id'], req['to_local_id']],
+                    'type': 'approved_request',
+                    'messages': [{
+                        'sender_id': req['from_user_id'],
+                        'text': req['message'],
+                        'timestamp': req['created_at']
+                    }],
+                    'created_at': datetime.utcnow(),
+                    'updated_at': datetime.utcnow()
+                }
+                conversations_collection.insert_one(conversation)
+        
+        return jsonify({
+            'message': f'Request {action}d successfully'
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@chat_bp.route('/travelers/nearby/for-local', methods=['GET'])
+def get_nearby_travelers_for_local():
+    """
+    Get nearby travelers for local guides
+    
+    GET /api/chat/travelers/nearby/for-local?lat=12.9716&lng=77.5946&range=20
+    """
+    try:
+        lat = float(request.args.get('lat', 12.9716))
+        lng = float(request.args.get('lng', 77.5946))
+        range_km = float(request.args.get('range', 20))
+        local_id = request.args.get('local_id', '')
+        
+        query = {
+            'role': 'tourist',
+            'location': {
+                '$nearSphere': {
+                    '$geometry': {
+                        'type': 'Point',
+                        'coordinates': [lng, lat]
+                    },
+                    '$maxDistance': range_km * 1000
+                }
+            }
+        }
+        
+        online_threshold = datetime.utcnow() - timedelta(minutes=ONLINE_TIMEOUT_MINUTES)
+        travelers = list(user_locations_collection.find(query).limit(30))
+        
+        result = []
+        for traveler in travelers:
+            coords = traveler.get('location', {}).get('coordinates', [0, 0])
+            dist_km = calculate_distance(lat, lng, coords[1], coords[0])
+            
+            result.append({
+                '_id': traveler.get('user_id', str(traveler.get('_id', ''))),
+                'name': traveler.get('name', 'Traveler'),
+                'role': 'tourist',
+                'distance': f"{dist_km:.1f} km",
+                'distance_km': dist_km,
+                'is_online': traveler.get('last_seen', datetime.min) > online_threshold
+            })
+        
+        result.sort(key=lambda x: x['distance_km'])
+        
+        return jsonify({
+            'travelers': result,
+            'count': len(result)
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500

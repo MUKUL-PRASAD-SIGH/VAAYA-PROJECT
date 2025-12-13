@@ -299,10 +299,10 @@ function CreatePost({ onClose, onPostCreated, userLocation }) {
                         <input
                             ref={fileInputRef}
                             type="file"
-                            accept="image/*,video/*"
+                            accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.webm,image/*,video/*"
                             multiple
                             onChange={handleFileSelect}
-                            hidden
+                            style={{ display: 'none' }}
                         />
                     </div>
 

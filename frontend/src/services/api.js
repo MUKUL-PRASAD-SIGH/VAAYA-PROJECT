@@ -121,9 +121,31 @@ export const chatApi = {
     getConversations: () => api.get('/api/chat/conversations'),
     getMessages: (conversationId) => api.get(`/api/chat/messages/${conversationId}`),
     sendMessage: (data) => api.post('/api/chat/send', data),
+
     // Community - User to User
     getNearbyTravelers: () => api.get('/api/chat/travelers/nearby'),
     startConversation: (data) => api.post('/api/chat/conversations', data),
+
+    // Location & Discovery
+    updateLocation: (data) => api.post('/api/chat/location/update', data),
+    getNearbyUsers: (lat, lng, range, role = 'all') =>
+        api.get(`/api/chat/users/nearby?lat=${lat}&lng=${lng}&range=${range}&role=${role}`),
+    getNearbyLocals: (lat, lng, range = 20) =>
+        api.get(`/api/chat/locals/nearby?lat=${lat}&lng=${lng}&range=${range}`),
+    getNearbyTravelersForLocal: (lat, lng, range = 20) =>
+        api.get(`/api/chat/travelers/nearby/for-local?lat=${lat}&lng=${lng}&range=${range}`),
+
+    // Chat Requests
+    sendChatRequest: (fromUserId, fromName, toLocalId, message) =>
+        api.post('/api/chat/request/send', { from_user_id: fromUserId, from_name: fromName, to_local_id: toLocalId, message }),
+    getPendingRequests: (localId) =>
+        api.get(`/api/chat/request/pending?local_id=${localId}`),
+    respondToRequest: (requestId, action) =>
+        api.post(`/api/chat/request/${requestId}/respond`, { action }),
+
+    // Premium Chat
+    startPremiumChat: (userId, localId) =>
+        api.post('/api/chat/premium/start', { user_id: userId, local_id: localId }),
 }
 
 export const notificationApi = {
@@ -146,9 +168,9 @@ export const localGuideApi = {
     getPendingSubmissions: (status = 'pending') => api.get(`/api/local-guide/submissions?status=${status}`),
     verifySubmission: (submissionId, data) => api.post(`/api/local-guide/submissions/${submissionId}/verify`, data),
 
-    // Content Management (Stories, Tips, Hidden Gems)
-    getMyContent: (type = '') => api.get(`/api/local-guide/content${type ? `?type=${type}` : ''}`),
-    createContent: (data) => api.post('/api/local-guide/content', data),
+    // Content Management (Stories, Tips, Hidden Gems) - Using demo endpoints (no auth)
+    getMyContent: (type = '') => api.get(`/api/local-guide/content/demo${type ? `?type=${type}` : ''}`),
+    createContent: (data) => api.post('/api/local-guide/content/demo', data),
     updateContent: (contentId, data) => api.put(`/api/local-guide/content/${contentId}`, data),
     deleteContent: (contentId) => api.delete(`/api/local-guide/content/${contentId}`),
 

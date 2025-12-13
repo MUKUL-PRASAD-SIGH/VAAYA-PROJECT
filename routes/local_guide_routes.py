@@ -323,6 +323,74 @@ def verify_submission(current_user, submission_id):
 # Content Management (Stories, Tips, etc.)
 # ===========================
 
+# Demo endpoints (no auth required for testing)
+DEMO_USER_ID = 'demo_local_guide'
+
+@local_guide_bp.route('/content/demo', methods=['GET'])
+def get_demo_content():
+    """Get all demo content (no auth required)"""
+    try:
+        content_type = request.args.get('type')
+        
+        query = {'author_id': DEMO_USER_ID}
+        if content_type:
+            query['type'] = content_type
+        
+        content = list(content_collection.find(query).sort('created_at', -1))
+        
+        for item in content:
+            item['_id'] = str(item['_id'])
+        
+        return jsonify({
+            'content': content,
+            'count': len(content)
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@local_guide_bp.route('/content/demo', methods=['POST'])
+def create_demo_content():
+    """Create demo content (no auth required)"""
+    try:
+        data = request.get_json()
+        
+        content_item = {
+            'author_id': DEMO_USER_ID,
+            'type': data.get('type', 'story'),
+            'title': data.get('title', ''),
+            'content': data.get('content', ''),
+            'location': {
+                'name': data.get('location', {}).get('name', ''),
+                'type': 'Point',
+                'coordinates': [0, 0]
+            },
+            'tags': data.get('tags', []),
+            'media': data.get('media', []),
+            'status': data.get('status', 'draft'),
+            'likes': 0,
+            'comments': 0,
+            'unlocks': 0,
+            'views': 0,
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
+        }
+        
+        result = content_collection.insert_one(content_item)
+        content_item['_id'] = str(result.inserted_id)
+        
+        return jsonify({
+            'message': 'Content created successfully',
+            'content': content_item
+        }), 201
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 @local_guide_bp.route('/content', methods=['GET'])
 @token_required
 def get_my_content(current_user):
