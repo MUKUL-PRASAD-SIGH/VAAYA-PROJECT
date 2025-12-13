@@ -22,7 +22,7 @@ function AppContent() {
     const { themeColors, getThemeStyles } = useTheme()
 
     return (
-        <div className="min-h-screen" style={getThemeStyles.pageBackground}>
+        <div className="min-h-screen app-background" style={getThemeStyles.pageBackground}>
             <Navbar />
             <Routes>
                 {/* Public Routes */}

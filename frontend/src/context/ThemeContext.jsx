@@ -191,53 +191,78 @@ export function ThemeProvider({ children }) {
         setCurrentTheme(themeKey)
     }
 
-    // Get current theme colors
+    // Get current theme colors, but only force text to be pure black for main text, not for cards
     const themeColors = useMemo(() => {
+        let colors
         if (currentTheme !== 'default' && themePalettes[currentTheme]) {
-            return themePalettes[currentTheme].colors
+            colors = { ...themePalettes[currentTheme].colors }
+        } else {
+            colors = { ...(isDarkMode ? defaultColors.dark : defaultColors.light) }
         }
-        return isDarkMode ? defaultColors.dark : defaultColors.light
+        // Only force text color for main text, not for cards
+        return colors
     }, [currentTheme, isDarkMode])
 
     // Helper function to get inline styles for components
-    const getThemeStyles = useMemo(() => ({
-        // Page background
-        pageBackground: { backgroundColor: themeColors.background },
+    const getThemeStyles = useMemo(() => {
+        // Helper to convert hex to rgba
+        const hexToRgba = (hex, alpha) => {
+            const r = parseInt(hex.slice(1, 3), 16)
+            const g = parseInt(hex.slice(3, 5), 16)
+            const b = parseInt(hex.slice(5, 7), 16)
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`
+        }
 
-        // Card styles
-        card: {
-            backgroundColor: themeColors.surface,
-            borderColor: themeColors.border,
-        },
-        cardAlt: {
-            backgroundColor: themeColors.surfaceAlt,
-            borderColor: themeColors.border,
-        },
+        return {
+            // Page background with image support
+            pageBackground: {
+                backgroundColor: 'transparent',
+                position: 'relative'
+            },
 
-        // Text styles
-        textPrimary: { color: themeColors.text },
-        textSecondary: { color: themeColors.textSecondary },
-        textMuted: { color: themeColors.textMuted },
+            // Card styles - now with transparency and theme color
+            card: {
+                backgroundColor: hexToRgba(themeColors.surface, 0.25), // 25% opacity for better transparency
+                borderColor: hexToRgba(themeColors.border, 0.3),
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                color: themeColors.text,
+            },
+            cardAlt: {
+                backgroundColor: hexToRgba(themeColors.surfaceAlt, 0.25), // 25% opacity
+                borderColor: hexToRgba(themeColors.border, 0.3),
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                color: themeColors.text,
+            },
 
-        // Border
-        border: { borderColor: themeColors.border },
+            // Text styles
+            textPrimary: { color: '#000000' },
+            textSecondary: { color: '#181818' },
+            textMuted: { color: '#222222' },
 
-        // Primary button/accent
-        primaryButton: {
-            backgroundColor: themeColors.primary,
-            color: '#ffffff',
-        },
+            // Border
+            border: { borderColor: themeColors.border },
 
-        // Input styles
-        input: {
-            backgroundColor: themeColors.surfaceAlt,
-            borderColor: themeColors.border,
-            color: themeColors.text,
-        },
+            // Primary button/accent
+            primaryButton: {
+                backgroundColor: themeColors.primary,
+                color: '#ffffff',
+            },
 
-        // Gradient (for special elements)
-        gradient: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.secondary})`,
-    }), [themeColors])
+            // Input styles
+            input: {
+                backgroundColor: hexToRgba(themeColors.surfaceAlt, 0.3),
+                borderColor: hexToRgba(themeColors.border, 0.4),
+                color: '#000000',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+            },
+
+            // Gradient (for special elements)
+            gradient: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.secondary})`,
+        }
+    }, [themeColors])
 
     return (
         <ThemeContext.Provider value={{

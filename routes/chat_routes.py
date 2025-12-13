@@ -184,12 +184,6 @@ def get_nearby_travelers(current_user):
         return jsonify({'error': str(e)}), 500
 
 
-        }), 200
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
 # ===========================
 # AI Chat History Endpoints
 # ===========================

@@ -1,10 +1,38 @@
-@import "tailwindcss";
-
 /* Google Fonts - Luxury Typography */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Tailwind v4 Theme Configuration */
-@theme {
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Background Image */
+body {
+    background-image: url('/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    margin: 0;
+    padding: 0;
+}
+
+#root {
+    background: transparent !important;
+}
+
+/* Background Image Support */
+.app-background {
+    background: transparent !important;
+}
+
+/* Ensure content is above background */
+.app-background>* {
+    position: relative;
+    z-index: 1;
+}
+
+/* Tailwind theme variables (kept in :root to avoid parser errors) */
+:root {
     --color-purple-600: #9333ea;
     --color-purple-700: #7c3aed;
     --color-pink-600: #db2777;
@@ -48,15 +76,15 @@
 
 /* Premium Background Classes */
 .luxury-bg {
-    background: var(--luxury-bg-dark);
+    background: transparent;
 }
 
 .luxury-bg-gradient {
-    background: var(--aurora-gradient);
+    background: transparent;
 }
 
 .luxury-bg-aurora {
-    background: var(--luxury-bg-dark);
+    background: transparent;
     position: relative;
 }
 
@@ -67,24 +95,64 @@
     left: 0;
     right: 0;
     height: 60%;
-    background: var(--aurora-glow);
+    background: transparent;
     pointer-events: none;
 }
 
-/* Glass Card Effects */
+/* Glass Card Effects - Enhanced for background visibility */
 .glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
     border-radius: 1rem;
     transition: all 0.3s ease;
 }
 
 .glass-card:hover {
-    background: var(--glass-bg-hover);
-    border-color: var(--glass-border-hover);
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
     transform: translateY(-2px);
+}
+
+/* Global transparent styles for all background classes */
+.bg-white {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.bg-gray-50 {
+    background-color: rgba(249, 250, 251, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.bg-gray-100 {
+    background-color: rgba(243, 244, 246, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.bg-gray-800 {
+    background-color: rgba(31, 41, 55, 0.5) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.bg-gray-900 {
+    background-color: rgba(17, 24, 39, 0.5) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Make inline styled backgrounds transparent */
+div[style*="backgroundColor"],
+section[style*="backgroundColor"],
+nav[style*="backgroundColor"],
+aside[style*="backgroundColor"] {
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
 }
 
 /* Gold Button */

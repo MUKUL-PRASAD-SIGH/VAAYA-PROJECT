@@ -53,11 +53,23 @@ export default function Navbar() {
     }
 
     return (
-        <nav className="shadow-lg relative z-50" style={getThemeStyles.card}>
+        <nav className="shadow-lg relative z-50" style={{
+            ...getThemeStyles.card,
+            backgroundColor: `rgba(${isDarkMode ? '31, 41, 55' : '255, 255, 255'}, 0.7)`,
+            color: '#181818', // Force dark text for visibility
+        }}>
             <div className="container mx-auto px-4">
                 <div className="flex justify-between items-center py-4">
                     <div className="flex items-center space-x-4">
-                        <Link to="/dashboard" className="text-2xl font-bold" style={{ color: themeColors.primary }}>
+                        <Link
+                            to="/dashboard"
+                            className="text-2xl font-bold tracking-wider"
+                            style={{
+                                color: themeColors.primary,
+                                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                                fontWeight: '700'
+                            }}
+                        >
                             VAYAA
                         </Link>
                     </div>
