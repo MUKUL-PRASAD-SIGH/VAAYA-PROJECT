@@ -1,138 +1,197 @@
-import { useState } from 'react'
-import { useTheme } from '../../context/ThemeContext'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 
 export default function Settings() {
-    const { isDarkMode } = useTheme()
+    const { currentUser, logout, sendVerificationEmail } = useAuth()
+    const navigate = useNavigate()
     const [settings, setSettings] = useState({
         notifications: true,
         emailUpdates: true,
         locationSharing: false,
         publicProfile: true,
     })
+    const [message, setMessage] = useState('')
 
-    // Dark mode classes
-    const cardClass = isDarkMode ? 'bg-gray-800' : 'bg-white'
-    const textPrimary = isDarkMode ? 'text-gray-100' : 'text-gray-800'
-    const textSecondary = isDarkMode ? 'text-gray-400' : 'text-gray-600'
-    const borderColor = isDarkMode ? 'border-gray-700' : 'border-gray-200'
+    useEffect(() => {
+        const saved = localStorage.getItem('appSettings')
+        if (saved) setSettings(JSON.parse(saved))
+    }, [])
 
     const handleToggle = (key) => {
-        setSettings(prev => ({ ...prev, [key]: !prev[key] }))
+        const newSettings = { ...settings, [key]: !settings[key] }
+        setSettings(newSettings)
+        localStorage.setItem('appSettings', JSON.stringify(newSettings))
     }
 
     const handleSave = () => {
         localStorage.setItem('appSettings', JSON.stringify(settings))
-        alert('Settings saved!')
+        setMessage('Settings saved successfully!')
+        setTimeout(() => setMessage(''), 3000)
     }
+
+    const handleChangePassword = () => {
+        // Firebase password reset email
+        if (currentUser?.email) {
+            import('firebase/auth').then(({ sendPasswordResetEmail, getAuth }) => {
+                sendPasswordResetEmail(getAuth(), currentUser.email)
+                    .then(() => setMessage('Password reset email sent!'))
+                    .catch(err => setMessage('Error: ' + err.message))
+            })
+        }
+    }
+
+    const handleDownloadData = () => {
+        const userData = {
+            email: currentUser?.email,
+            displayName: currentUser?.displayName,
+            settings: settings,
+            preferences: JSON.parse(localStorage.getItem('userPreferences') || '{}'),
+            profile: JSON.parse(localStorage.getItem('userProfile') || '{}'),
+            exportedAt: new Date().toISOString()
+        }
+        const blob = new Blob([JSON.stringify(userData, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'vaaya-my-data.json'
+        a.click()
+        setMessage('Data downloaded!')
+    }
+
+    const handleDeleteAccount = () => {
+        if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            localStorage.clear()
+            logout()
+            navigate('/login')
+        }
+    }
+
+    const handleTerms = () => window.open('/terms', '_blank')
+    const handlePrivacy = () => window.open('/privacy', '_blank')
 
     const ToggleSwitch = ({ enabled, onChange }) => (
         <button
             onClick={onChange}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${enabled ? 'bg-purple-600' : 'bg-gray-300'}`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${enabled ? 'bg-[#c4a35a]' : 'bg-[rgba(255,255,255,0.2)]'}`}
         >
             <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${enabled ? 'translate-x-6' : 'translate-x-1'}`} />
         </button>
     )
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Header */}
-            <div className="mb-8">
-                <h2 className={`text-3xl font-bold ${textPrimary} mb-2`}>Settings</h2>
-                <p className={textSecondary}>Configure your app preferences</p>
-            </div>
+        <div className="min-h-screen luxury-bg-aurora luxury-scrollbar">
+            <div className="container mx-auto px-6 py-12 relative z-10">
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Notifications */}
-                <div className={`${cardClass} rounded-lg shadow-lg p-6`}>
-                    <h3 className={`text-xl font-bold ${textPrimary} mb-6`}>Notifications</h3>
+                {/* Header */}
+                <div className="text-center mb-12">
+                    <p className="luxury-subheading mb-4">CONFIGURATION</p>
+                    <h1 className="luxury-heading text-5xl md:text-6xl mb-4">
+                        <span className="luxury-heading-gold">Settings</span>
+                    </h1>
+                    <p className="luxury-text-muted">Configure your app preferences</p>
+                </div>
 
-                    <div className={`flex items-center justify-between py-4 border-b ${borderColor}`}>
-                        <div>
-                            <p className={`font-semibold ${textPrimary}`}>Push Notifications</p>
-                            <p className={`text-sm ${textSecondary}`}>Receive alerts for quests and updates</p>
+                {message && (
+                    <div className="max-w-5xl mx-auto mb-6 p-4 rounded-lg text-center" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }}>
+                        {message}
+                    </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                    {/* Notifications */}
+                    <div className="glass-card p-6">
+                        <p className="luxury-subheading mb-2">ALERTS</p>
+                        <h3 className="luxury-heading-gold text-xl mb-6">Notifications</h3>
+
+                        <div className="flex items-center justify-between py-4 border-b border-[rgba(255,255,255,0.1)]">
+                            <div>
+                                <p className="luxury-text font-semibold">Push Notifications</p>
+                                <p className="luxury-text-muted text-sm">Receive alerts for quests</p>
+                            </div>
+                            <ToggleSwitch enabled={settings.notifications} onChange={() => handleToggle('notifications')} />
                         </div>
-                        <ToggleSwitch enabled={settings.notifications} onChange={() => handleToggle('notifications')} />
+
+                        <div className="flex items-center justify-between py-4">
+                            <div>
+                                <p className="luxury-text font-semibold">Email Updates</p>
+                                <p className="luxury-text-muted text-sm">Weekly newsletter</p>
+                            </div>
+                            <ToggleSwitch enabled={settings.emailUpdates} onChange={() => handleToggle('emailUpdates')} />
+                        </div>
                     </div>
 
-                    <div className={`flex items-center justify-between py-4`}>
-                        <div>
-                            <p className={`font-semibold ${textPrimary}`}>Email Updates</p>
-                            <p className={`text-sm ${textSecondary}`}>Weekly newsletter and trip reminders</p>
+                    {/* Privacy */}
+                    <div className="glass-card p-6">
+                        <p className="luxury-subheading mb-2">SECURITY</p>
+                        <h3 className="luxury-heading-gold text-xl mb-6">Privacy</h3>
+
+                        <div className="flex items-center justify-between py-4 border-b border-[rgba(255,255,255,0.1)]">
+                            <div>
+                                <p className="luxury-text font-semibold">Location Sharing</p>
+                                <p className="luxury-text-muted text-sm">Share for nearby quests</p>
+                            </div>
+                            <ToggleSwitch enabled={settings.locationSharing} onChange={() => handleToggle('locationSharing')} />
                         </div>
-                        <ToggleSwitch enabled={settings.emailUpdates} onChange={() => handleToggle('emailUpdates')} />
+
+                        <div className="flex items-center justify-between py-4">
+                            <div>
+                                <p className="luxury-text font-semibold">Public Profile</p>
+                                <p className="luxury-text-muted text-sm">Allow others to see you</p>
+                            </div>
+                            <ToggleSwitch enabled={settings.publicProfile} onChange={() => handleToggle('publicProfile')} />
+                        </div>
+                    </div>
+
+                    {/* Account */}
+                    <div className="glass-card p-6">
+                        <p className="luxury-subheading mb-2">MANAGEMENT</p>
+                        <h3 className="luxury-heading-gold text-xl mb-6">Account</h3>
+
+                        <div className="space-y-3">
+                            <button onClick={handleChangePassword} className="w-full text-left glass-card px-4 py-3 luxury-text hover:bg-[rgba(255,255,255,0.08)] transition">
+                                🔐 Change Password
+                            </button>
+                            <button onClick={handleDownloadData} className="w-full text-left glass-card px-4 py-3 luxury-text hover:bg-[rgba(255,255,255,0.08)] transition">
+                                📥 Download My Data
+                            </button>
+                            <button onClick={handleDeleteAccount} className="w-full text-left px-4 py-3 rounded-lg transition" style={{ backgroundColor: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                                🗑️ Delete Account
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* About */}
+                    <div className="glass-card p-6">
+                        <p className="luxury-subheading mb-2">INFORMATION</p>
+                        <h3 className="luxury-heading-gold text-xl mb-6">About</h3>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="luxury-stat-card">
+                                <div className="luxury-stat-value text-xl">1.0.0</div>
+                                <div className="luxury-stat-label">Version</div>
+                            </div>
+                            <div className="luxury-stat-card">
+                                <div className="luxury-stat-value text-xl">2024.12</div>
+                                <div className="luxury-stat-label">Build</div>
+                            </div>
+                            <button onClick={handleTerms} className="glass-card p-4 text-center luxury-text hover:bg-[rgba(255,255,255,0.08)] transition">
+                                📄 Terms of Service
+                            </button>
+                            <button onClick={handlePrivacy} className="glass-card p-4 text-center luxury-text hover:bg-[rgba(255,255,255,0.08)] transition">
+                                🔒 Privacy Policy
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                {/* Privacy */}
-                <div className={`${cardClass} rounded-lg shadow-lg p-6`}>
-                    <h3 className={`text-xl font-bold ${textPrimary} mb-6`}>Privacy</h3>
-
-                    <div className={`flex items-center justify-between py-4 border-b ${borderColor}`}>
-                        <div>
-                            <p className={`font-semibold ${textPrimary}`}>Location Sharing</p>
-                            <p className={`text-sm ${textSecondary}`}>Share your location for nearby quests</p>
-                        </div>
-                        <ToggleSwitch enabled={settings.locationSharing} onChange={() => handleToggle('locationSharing')} />
-                    </div>
-
-                    <div className={`flex items-center justify-between py-4`}>
-                        <div>
-                            <p className={`font-semibold ${textPrimary}`}>Public Profile</p>
-                            <p className={`text-sm ${textSecondary}`}>Allow others to see your profile</p>
-                        </div>
-                        <ToggleSwitch enabled={settings.publicProfile} onChange={() => handleToggle('publicProfile')} />
-                    </div>
+                {/* Save Button */}
+                <div className="mt-8 flex justify-center">
+                    <button onClick={handleSave} className="gold-button px-12">
+                        Save Settings
+                    </button>
                 </div>
-
-                {/* Account */}
-                <div className={`${cardClass} rounded-lg shadow-lg p-6`}>
-                    <h3 className={`text-xl font-bold ${textPrimary} mb-6`}>Account</h3>
-
-                    <div className="space-y-3">
-                        <button className={`w-full text-left px-4 py-3 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} ${textPrimary} transition`}>
-                            Change Password
-                        </button>
-                        <button className={`w-full text-left px-4 py-3 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} ${textPrimary} transition`}>
-                            Download My Data
-                        </button>
-                        <button className="w-full text-left px-4 py-3 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition">
-                            Delete Account
-                        </button>
-                    </div>
-                </div>
-
-                {/* About */}
-                <div className={`${cardClass} rounded-lg shadow-lg p-6`}>
-                    <h3 className={`text-xl font-bold ${textPrimary} mb-6`}>About</h3>
-
-                    <div className="space-y-3">
-                        <div className={`flex justify-between py-2 border-b ${borderColor}`}>
-                            <span className={textSecondary}>Version</span>
-                            <span className={`font-semibold ${textPrimary}`}>1.0.0</span>
-                        </div>
-                        <div className={`flex justify-between py-2 border-b ${borderColor}`}>
-                            <span className={textSecondary}>Build</span>
-                            <span className={`font-semibold ${textPrimary}`}>2024.12.12</span>
-                        </div>
-                        <button className={`w-full text-left px-4 py-3 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} ${textPrimary} transition`}>
-                            Terms of Service
-                        </button>
-                        <button className={`w-full text-left px-4 py-3 rounded-lg ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} ${textPrimary} transition`}>
-                            Privacy Policy
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Save Button */}
-            <div className="mt-8 flex justify-end">
-                <button
-                    onClick={handleSave}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-8 rounded-lg hover:from-purple-700 hover:to-pink-700 transition shadow-lg"
-                >
-                    Save Settings
-                </button>
             </div>
         </div>
     )

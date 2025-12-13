@@ -1,4 +1,4 @@
-/* Quest Creator Styles */
+/* Quest Creator - Luxury Panorama Glass Style */
 .quest-creator {
     display: grid;
     grid-template-columns: 1fr 350px;
@@ -7,7 +7,7 @@
 
 .creator-section {
     background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 2rem;
@@ -21,10 +21,12 @@
 }
 
 .section-header h2 {
-    color: #fff;
-    font-size: 1.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 1.75rem;
     margin: 0;
     font-weight: 600;
+    font-style: italic;
 }
 
 .step-indicator {
@@ -36,14 +38,16 @@
     padding: 0.5rem 1rem;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 20px;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(245, 245, 245, 0.4);
+    font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
     transition: all 0.3s ease;
 }
 
 .step.active {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-    color: #fff;
+    background: rgba(196, 163, 90, 0.2);
+    color: #c4a35a;
+    border: 1px solid rgba(196, 163, 90, 0.3);
 }
 
 /* Quest Types Grid */
@@ -60,18 +64,18 @@
     padding: 1.5rem;
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
 }
 
 .quest-type-card:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(102, 126, 234, 0.3);
+    background: rgba(196, 163, 90, 0.05);
+    border-color: rgba(196, 163, 90, 0.3);
     transform: translateY(-4px);
 }
 
 .quest-type-card.selected {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-    border-color: #667eea;
+    background: rgba(196, 163, 90, 0.1);
+    border-color: #c4a35a;
 }
 
 .type-icon {
@@ -81,13 +85,15 @@
 }
 
 .quest-type-card h3 {
-    color: #fff;
-    font-size: 1.1rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 1.2rem;
     margin: 0 0 0.5rem;
 }
 
 .quest-type-card p {
-    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.5);
     font-size: 0.85rem;
     margin: 0;
 }
@@ -106,9 +112,12 @@
 }
 
 .form-group label {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.7);
+    font-size: 0.75rem;
     font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .form-group input,
@@ -118,7 +127,8 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 1rem;
-    color: #fff;
+    color: #f5f5f5;
+    font-family: 'Inter', sans-serif;
     font-size: 1rem;
     transition: all 0.3s ease;
 }
@@ -127,13 +137,13 @@
 .form-group textarea:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #c4a35a;
     background: rgba(255, 255, 255, 0.08);
 }
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(245, 245, 245, 0.3);
 }
 
 .form-group select {
@@ -141,8 +151,8 @@
 }
 
 .form-group select option {
-    background: #1a1a2e;
-    color: #fff;
+    background: #0f2027;
+    color: #f5f5f5;
 }
 
 .form-row {
@@ -182,14 +192,15 @@
 
 .level-label {
     display: block;
-    color: #fff;
+    color: #f5f5f5;
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.95rem;
 }
 
 .level-points {
     display: block;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(245, 245, 245, 0.5);
     font-size: 0.8rem;
     margin-top: 0.25rem;
 }
@@ -214,16 +225,17 @@
     -webkit-appearance: none;
     width: 20px;
     height: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #c4a35a;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(196, 163, 90, 0.4);
 }
 
 .points-value {
-    color: #92fe9d;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     min-width: 100px;
 }
 
@@ -239,6 +251,7 @@
 .btn-secondary {
     padding: 1rem 2rem;
     border-radius: 12px;
+    font-family: 'Inter', sans-serif;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -246,20 +259,20 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #c4a35a;
     border: none;
-    color: #fff;
+    color: #1a1a1a;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 24px rgba(196, 163, 90, 0.4);
 }
 
 .btn-secondary {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(245, 245, 245, 0.8);
 }
 
 .btn-secondary:hover {
@@ -276,6 +289,7 @@
 
 .review-card {
     background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 1.5rem;
@@ -293,9 +307,10 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(196, 163, 90, 0.15);
     border-radius: 20px;
-    color: #fff;
+    color: #c4a35a;
+    font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
 }
 
@@ -309,13 +324,15 @@
 }
 
 .review-card h3 {
-    color: #fff;
-    font-size: 1.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 1.75rem;
     margin: 0 0 0.75rem;
 }
 
 .review-description {
-    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.6);
     font-size: 1rem;
     margin: 0 0 1.5rem;
     line-height: 1.6;
@@ -332,7 +349,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(245, 245, 245, 0.7);
     font-size: 0.9rem;
 }
 
@@ -341,19 +358,23 @@
 }
 
 .review-tips {
-    background: rgba(255, 184, 0, 0.1);
+    background: rgba(196, 163, 90, 0.1);
+    border: 1px solid rgba(196, 163, 90, 0.2);
     border-radius: 12px;
     padding: 1rem;
 }
 
 .review-tips h4 {
-    color: #fbbf24;
+    font-family: 'Inter', sans-serif;
+    color: #c4a35a;
     margin: 0 0 0.5rem;
     font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .review-tips p {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(245, 245, 245, 0.7);
     margin: 0;
     font-size: 0.9rem;
 }
@@ -361,7 +382,7 @@
 /* My Quests Section */
 .my-quests-section {
     background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 1.5rem;
@@ -369,10 +390,12 @@
 }
 
 .my-quests-section h2 {
-    color: #fff;
-    font-size: 1.25rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 1.5rem;
     margin: 0 0 1rem;
     font-weight: 600;
+    font-style: italic;
 }
 
 .quests-list {
@@ -392,13 +415,13 @@
 }
 
 .quest-item:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(196, 163, 90, 0.1);
 }
 
 .quest-icon {
     width: 44px;
     height: 44px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    background: linear-gradient(135deg, #1a4a5c, #2d6a7c);
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -411,7 +434,8 @@
 }
 
 .quest-info h4 {
-    color: #fff;
+    font-family: 'Inter', sans-serif;
+    color: #f5f5f5;
     font-size: 0.95rem;
     margin: 0 0 0.25rem;
 }
@@ -419,26 +443,27 @@
 .quest-stats {
     display: flex;
     gap: 1rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(245, 245, 245, 0.5);
     font-size: 0.8rem;
 }
 
 .quest-status {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
+    font-family: 'Inter', sans-serif;
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: capitalize;
 }
 
 .quest-status.active {
-    background: rgba(74, 222, 128, 0.2);
-    color: #4ade80;
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
 }
 
 .quest-status.draft {
     background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(245, 245, 245, 0.5);
 }
 
 /* Responsive */

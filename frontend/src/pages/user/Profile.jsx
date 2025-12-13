@@ -1,402 +1,259 @@
 import { useState, useEffect } from 'react'
-import { useTheme } from '../../context/ThemeContext'
 import { useAuth } from '../../context/AuthContext'
 import { userApi } from '../../services/api'
 
 // Preferences Card Component
-function PreferencesCard({ themeColors, containerStyle }) {
+function PreferencesCard() {
     const [prefs, setPrefs] = useState(null)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         async function fetchPreferences() {
             try {
-                // Try API first
                 const response = await userApi.getPreferences()
-                if (response.data?.preferences) {
-                    setPrefs(response.data.preferences)
-                }
-            } catch (error) {
-                // Fallback to localStorage
+                if (response.data?.preferences) setPrefs(response.data.preferences)
+            } catch {
                 const localPrefs = localStorage.getItem('userPreferences')
-                if (localPrefs) {
-                    setPrefs(JSON.parse(localPrefs))
-                }
-            } finally {
-                setLoading(false)
-            }
+                if (localPrefs) setPrefs(JSON.parse(localPrefs))
+            } finally { setLoading(false) }
         }
         fetchPreferences()
     }, [])
 
-    if (loading) return null
-    if (!prefs) return null
+    if (loading || !prefs) return null
 
     return (
-        <div className="mt-8 rounded-lg shadow-lg p-6 border" style={containerStyle}>
-            <h3 className="text-xl font-bold mb-6">Your Preferences</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-4 rounded-lg" style={{ backgroundColor: themeColors.primary + '20' }}>
-                    <p className="text-sm opacity-70 mb-1">Role</p>
-                    <p className="text-lg font-bold" style={{ color: themeColors.primary }}>{prefs.role || 'Not set'}</p>
+        <div className="glass-card p-6 mt-8">
+            <p className="luxury-subheading mb-2">YOUR PREFERENCES</p>
+            <h3 className="luxury-heading-gold text-xl mb-6">Travel Style</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="luxury-stat-card">
+                    <div className="luxury-stat-value text-xl">{prefs.role || '—'}</div>
+                    <div className="luxury-stat-label">Role</div>
                 </div>
-                <div className="text-center p-4 rounded-lg" style={{ backgroundColor: themeColors.primary + '20' }}>
-                    <p className="text-sm opacity-70 mb-1">Budget</p>
-                    <p className="text-lg font-bold" style={{ color: themeColors.primary }}>{prefs.budget || 'Not set'}</p>
+                <div className="luxury-stat-card">
+                    <div className="luxury-stat-value text-xl">{prefs.budget || '—'}</div>
+                    <div className="luxury-stat-label">Budget</div>
                 </div>
-                <div className="text-center p-4 rounded-lg" style={{ backgroundColor: themeColors.primary + '20' }}>
-                    <p className="text-sm opacity-70 mb-1">Interests</p>
-                    <p className="text-sm font-medium" style={{ color: themeColors.primary }}>
+                <div className="luxury-stat-card">
+                    <div className="text-sm luxury-text-muted text-center">
                         {prefs.interests?.length > 0 ? prefs.interests.join(', ') : 'Not set'}
-                    </p>
+                    </div>
+                    <div className="luxury-stat-label mt-2">Interests</div>
                 </div>
             </div>
         </div>
     )
 }
+
 export default function Profile() {
-    const { getThemeStyles, themeColors, isDarkMode } = useTheme()
     const { currentUser, setupRecaptcha, linkPhone, reloadUser } = useAuth()
 
-    // Form state
     const [formData, setFormData] = useState({
         displayName: currentUser?.displayName || '',
         bio: '',
         location: '',
         phoneNumber: currentUser?.phoneNumber || ''
     })
-
-    // UI state
     const [isEditing, setIsEditing] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [message, setMessage] = useState('')
-
-    // Phone Verification State
     const [showPhoneModal, setShowPhoneModal] = useState(false)
-    const [phoneStep, setPhoneStep] = useState('input') // input, otp
+    const [phoneStep, setPhoneStep] = useState('input')
     const [verificationId, setVerificationId] = useState(null)
     const [otp, setOtp] = useState('')
     const [newPhone, setNewPhone] = useState('+91 ')
 
     useEffect(() => {
-        // Reset phone to +91 when modal opens
-        if (showPhoneModal) {
-            setNewPhone('+91 ')
-        }
+        if (showPhoneModal) setNewPhone('+91 ')
     }, [showPhoneModal])
 
     useEffect(() => {
-        // Cleanup Recaptcha on unmount
         return () => {
             if (window.recaptchaVerifier) {
-                try {
-                    window.recaptchaVerifier.clear()
-                } catch (e) {
-                    console.error('Failed to clear recaptcha', e)
-                }
+                try { window.recaptchaVerifier.clear() } catch (e) { }
                 window.recaptchaVerifier = null
             }
         }
     }, [])
 
     useEffect(() => {
-        // Load extra profile data from localStorage
         const savedProfile = localStorage.getItem('userProfile')
         if (savedProfile) {
             const parsed = JSON.parse(savedProfile)
-            setFormData(prev => ({
-                ...prev,
-                bio: parsed.bio || '',
-                location: parsed.location || ''
-            }))
+            setFormData(prev => ({ ...prev, bio: parsed.bio || '', location: parsed.location || '' }))
         }
     }, [])
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        setFormData(prev => ({ ...prev, [name]: value }))
-    }
+    const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
 
     const handleSave = async () => {
         setIsLoading(true)
         try {
-            // Update Firebase Profile for Display Name
-            if (currentUser && formData.displayName !== currentUser.displayName) {
-                // We'd need to import updateProfile from context or auth
-                // For now, assuming AuthContext might need an updateProfile method exposed
-                // But let's just save the local parts
-            }
-
-            // Save extra fields to localStorage
-            const profileData = {
-                bio: formData.bio,
-                location: formData.location
-            }
-            localStorage.setItem('userProfile', JSON.stringify(profileData))
-
+            localStorage.setItem('userProfile', JSON.stringify({ bio: formData.bio, location: formData.location }))
             setMessage('Profile updated successfully!')
             setIsEditing(false)
-        } catch (error) {
-            console.error(error)
-            setMessage('Failed to update profile')
-        } finally {
-            setIsLoading(false)
-        }
+        } catch { setMessage('Failed to update profile') }
+        finally { setIsLoading(false) }
     }
 
-    // Phone Verification Logic
     const handleSendOtp = async () => {
         if (!newPhone) return
-
-        // Remove spaces from phone number
         const formattedPhone = newPhone.replace(/\s+/g, '')
-
         try {
-            // Reuse existing verifier if possible (Singleton pattern)
-            // Only clear/reset if strictly necessary (e.g. in cleanup)
-
-            // Safety measure: if window.recaptchaVerifier is null but the container is populated,
-            // the new verifier might crash. Let's ensure container is clean-ish.
             if (!window.recaptchaVerifier) {
                 const container = document.getElementById('recaptcha-container')
-                if (container && container.hasChildNodes()) {
-                    container.innerHTML = ''
-                }
+                if (container?.hasChildNodes()) container.innerHTML = ''
             }
-
             const verifier = setupRecaptcha('recaptcha-container')
             const confirmationResult = await linkPhone(formattedPhone, verifier)
             setVerificationId(confirmationResult)
             setPhoneStep('otp')
             setMessage('OTP sent to ' + formattedPhone)
-        } catch (error) {
-            console.error(error)
-            setMessage('Error: ' + error.message)
-        }
+        } catch (error) { setMessage('Error: ' + error.message) }
     }
 
     const handleVerifyOtp = async () => {
         if (!otp || !verificationId) return
-
         try {
             await verificationId.confirm(otp)
             await reloadUser()
-            setMessage('Phone number verified successfully!')
+            setMessage('Phone number verified!')
             setShowPhoneModal(false)
             setNewPhone('')
             setOtp('')
             setPhoneStep('input')
-        } catch (error) {
-            console.error(error)
-            setMessage('Invalid OTP. Please try again.')
-        }
-    }
-
-    const containerStyle = {
-        ...getThemeStyles.card,
-        color: themeColors.text
+        } catch { setMessage('Invalid OTP. Please try again.') }
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div id="recaptcha-container"></div>
+        <div className="min-h-screen luxury-bg-aurora luxury-scrollbar">
+            <div className="container mx-auto px-6 py-12 relative z-10">
+                <div id="recaptcha-container"></div>
 
-            {/* Header */}
-            <div className="mb-8">
-                <h2 className="text-3xl font-bold mb-2" style={getThemeStyles.textPrimary}>Profile</h2>
-                <p style={getThemeStyles.textSecondary}>Manage your personal information</p>
-            </div>
-
-            {/* Main Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* User Card */}
-                <div className="rounded-lg shadow-lg p-6 text-center border" style={containerStyle}>
-                    <img
-                        src={currentUser?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.displayName || 'User')}&background=random`}
-                        className="w-32 h-32 rounded-full mx-auto mb-4 border-4"
-                        style={{ borderColor: themeColors.primary }}
-                        alt="Profile"
-                    />
-                    <h3 className="text-xl font-bold mb-1">{currentUser?.displayName || 'User'}</h3>
-                    <p className="text-sm opacity-70 mb-4">{currentUser?.email}</p>
-
-                    {/* Stats (Mock) */}
-                    <div className="flex justify-center space-x-6 mb-6">
-                        <div>
-                            <p className="text-2xl font-bold" style={{ color: themeColors.primary }}>0</p>
-                            <p className="text-xs opacity-70">Points</p>
-                        </div>
-                        <div>
-                            <p className="text-2xl font-bold" style={{ color: themeColors.primary }}>0</p>
-                            <p className="text-xs opacity-70">Quests</p>
-                        </div>
-                    </div>
-
-                    {!isEditing ? (
-                        <button
-                            onClick={() => setIsEditing(true)}
-                            className="w-full py-2 rounded-lg font-semibold transition"
-                            style={getThemeStyles.primaryButton}
-                        >
-                            Edit Profile
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handleSave}
-                            disabled={isLoading}
-                            className="w-full py-2 rounded-lg font-semibold transition"
-                            style={getThemeStyles.primaryButton}
-                        >
-                            {isLoading ? 'Saving...' : 'Save Changes'}
-                        </button>
-                    )}
+                {/* Header */}
+                <div className="text-center mb-12">
+                    <p className="luxury-subheading mb-4">YOUR ACCOUNT</p>
+                    <h1 className="luxury-heading text-5xl md:text-6xl mb-4">
+                        <span className="luxury-heading-gold">Profile</span>
+                    </h1>
+                    <p className="luxury-text-muted">Manage your personal information</p>
                 </div>
 
-                {/* Details Section */}
-                <div className="lg:col-span-2 rounded-lg shadow-lg p-6 border" style={containerStyle}>
-                    <h3 className="text-xl font-bold mb-6">Contact Information</h3>
+                {/* Main Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                    <div className="space-y-6">
-                        {/* Email */}
-                        <div>
-                            <label className="block text-sm font-medium mb-1 opacity-70">Email</label>
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="email"
-                                    value={currentUser?.email}
-                                    disabled
-                                    className="w-full px-4 py-2 rounded-lg border bg-opacity-50 opacity-70"
-                                    style={getThemeStyles.input}
-                                />
-                                {currentUser?.emailVerified ? (
-                                    <span className="text-green-500 font-medium whitespace-nowrap">✓ Verified</span>
-                                ) : (
-                                    <span className="text-yellow-500 font-medium whitespace-nowrap">⚠ Unverified</span>
-                                )}
+                    {/* Profile Card */}
+                    <div className="glass-card p-8 text-center">
+                        <img
+                            src={currentUser?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.displayName || 'User')}&background=1a4a5c&color=c4a35a`}
+                            className="w-32 h-32 rounded-full mx-auto mb-6 border-4"
+                            style={{ borderColor: '#c4a35a' }}
+                            alt="Profile"
+                        />
+                        <h3 className="luxury-heading-gold text-2xl mb-1">{currentUser?.displayName || 'User'}</h3>
+                        <p className="luxury-text-muted text-sm mb-6">{currentUser?.email}</p>
+
+                        {/* Stats */}
+                        <div className="flex justify-center gap-8 mb-6">
+                            <div className="luxury-stat-card p-4">
+                                <div className="luxury-stat-value text-2xl">0</div>
+                                <div className="luxury-stat-label">Points</div>
+                            </div>
+                            <div className="luxury-stat-card p-4">
+                                <div className="luxury-stat-value text-2xl">0</div>
+                                <div className="luxury-stat-label">Quests</div>
                             </div>
                         </div>
 
-                        {/* Phone */}
-                        <div>
-                            <label className="block text-sm font-medium mb-1 opacity-70">Phone Number</label>
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="text"
-                                    value={currentUser?.phoneNumber || 'Not linked'}
-                                    disabled
-                                    className="w-full px-4 py-2 rounded-lg border bg-opacity-50 opacity-70"
-                                    style={getThemeStyles.input}
-                                />
-                                {currentUser?.phoneNumber ? (
-                                    <span className="text-green-500 font-medium whitespace-nowrap">✓ Verified</span>
-                                ) : (
-                                    <button
-                                        onClick={() => setShowPhoneModal(true)}
-                                        className="px-4 py-2 rounded-lg text-sm font-medium hover:opacity-80 transition"
-                                        style={{ backgroundColor: themeColors.accent, color: '#fff' }}
-                                    >
-                                        Add Phone
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Custom Fields (Bio/Location) */}
-                        {isEditing && (
-                            <>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 opacity-70">Full Name</label>
-                                    <input
-                                        type="text"
-                                        name="displayName"
-                                        value={formData.displayName}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2 rounded-lg border"
-                                        style={getThemeStyles.input}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 opacity-70">Bio</label>
-                                    <textarea
-                                        name="bio"
-                                        value={formData.bio}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2 rounded-lg border"
-                                        rows="3"
-                                        style={getThemeStyles.input}
-                                        placeholder="Tell us about yourself"
-                                    />
-                                </div>
-                            </>
+                        {!isEditing ? (
+                            <button onClick={() => setIsEditing(true)} className="w-full gold-button">
+                                Edit Profile
+                            </button>
+                        ) : (
+                            <button onClick={handleSave} disabled={isLoading} className="w-full gold-button disabled:opacity-50">
+                                {isLoading ? 'Saving...' : 'Save Changes'}
+                            </button>
                         )}
                     </div>
 
-                    {message && (
-                        <div className="mt-4 p-3 rounded-lg bg-green-100 text-green-700 text-sm">
-                            {message}
+                    {/* Details Card */}
+                    <div className="lg:col-span-2 glass-card p-8">
+                        <p className="luxury-subheading mb-2">CONTACT INFORMATION</p>
+                        <h3 className="luxury-heading-gold text-xl mb-6">Your Details</h3>
+
+                        <div className="space-y-6">
+                            {/* Email */}
+                            <div>
+                                <label className="luxury-subheading block mb-2">EMAIL</label>
+                                <div className="flex items-center gap-3">
+                                    <input type="email" value={currentUser?.email} disabled className="flex-1 luxury-input opacity-70" />
+                                    {currentUser?.emailVerified ? (
+                                        <span className="text-sm whitespace-nowrap" style={{ color: '#22c55e' }}>✓ Verified</span>
+                                    ) : (
+                                        <span className="text-sm whitespace-nowrap" style={{ color: '#eab308' }}>⚠ Unverified</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Phone */}
+                            <div>
+                                <label className="luxury-subheading block mb-2">PHONE NUMBER</label>
+                                <div className="flex items-center gap-3">
+                                    <input type="text" value={currentUser?.phoneNumber || 'Not linked'} disabled className="flex-1 luxury-input opacity-70" />
+                                    {currentUser?.phoneNumber ? (
+                                        <span className="text-sm whitespace-nowrap" style={{ color: '#22c55e' }}>✓ Verified</span>
+                                    ) : (
+                                        <button onClick={() => setShowPhoneModal(true)} className="gold-button text-sm">Add Phone</button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Edit Fields */}
+                            {isEditing && (
+                                <>
+                                    <div>
+                                        <label className="luxury-subheading block mb-2">FULL NAME</label>
+                                        <input type="text" name="displayName" value={formData.displayName} onChange={handleChange} className="w-full luxury-input" />
+                                    </div>
+                                    <div>
+                                        <label className="luxury-subheading block mb-2">BIO</label>
+                                        <textarea name="bio" value={formData.bio} onChange={handleChange} rows="3" placeholder="Tell us about yourself" className="w-full luxury-input" />
+                                    </div>
+                                </>
+                            )}
                         </div>
-                    )}
+
+                        {message && (
+                            <div className="mt-4 p-3 rounded-lg text-sm" style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e' }}>
+                                {message}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* User Preferences Section */}
-                <PreferencesCard themeColors={themeColors} containerStyle={containerStyle} />
+                {/* Preferences */}
+                <PreferencesCard />
 
-                {/* Phone Verification Modal */}
+                {/* Phone Modal */}
                 {showPhoneModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                        <div className="w-full max-w-md p-6 rounded-lg shadow-2xl relative" style={getThemeStyles.card}>
-                            <button
-                                onClick={() => setShowPhoneModal(false)}
-                                className="absolute top-4 right-4 hover:opacity-70"
-                            >
-                                ✕
-                            </button>
-
-                            <h3 className="text-xl font-bold mb-4">Verify Phone Number</h3>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+                        <div className="glass-card w-full max-w-md p-6 relative">
+                            <button onClick={() => setShowPhoneModal(false)} className="absolute top-4 right-4 luxury-text-muted hover:text-white text-xl">✕</button>
+                            <h3 className="luxury-heading-gold text-xl mb-4">Verify Phone</h3>
 
                             {phoneStep === 'input' ? (
                                 <div className="space-y-4">
-                                    <p className="text-sm opacity-80">Enter your phone number (keep +91 for India)</p>
-                                    <input
-                                        type="tel"
-                                        value={newPhone}
-                                        onChange={(e) => setNewPhone(e.target.value)}
-                                        placeholder="+91 98765 43210"
-                                        className="w-full px-4 py-2 rounded-lg border"
-                                        style={getThemeStyles.input}
-                                    />
-                                    <button
-                                        onClick={handleSendOtp}
-                                        className="w-full py-2 rounded-lg font-bold text-white transition hover:opacity-90"
-                                        style={{ backgroundColor: themeColors.primary }}
-                                    >
-                                        Send Code
-                                    </button>
+                                    <p className="luxury-text-muted text-sm">Enter your phone number</p>
+                                    <input type="tel" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder="+91 98765 43210" className="w-full luxury-input" />
+                                    <button onClick={handleSendOtp} className="w-full gold-button">Send Code</button>
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    <p className="text-sm opacity-80">Enter the 6-digit code sent to {newPhone}</p>
-                                    <input
-                                        type="text"
-                                        value={otp}
-                                        onChange={(e) => setOtp(e.target.value)}
-                                        placeholder="123456"
-                                        className="w-full px-4 py-2 rounded-lg border tracking-widest text-center text-xl"
-                                        style={getThemeStyles.input}
-                                    />
-                                    <button
-                                        onClick={handleVerifyOtp}
-                                        className="w-full py-2 rounded-lg font-bold text-white transition hover:opacity-90"
-                                        style={{ backgroundColor: themeColors.green || '#10B981' }}
-                                    >
-                                        Verify Code
-                                    </button>
-                                    <button
-                                        onClick={() => setPhoneStep('input')}
-                                        className="w-full text-sm hover:underline opacity-70"
-                                    >
-                                        Change Phone Number
-                                    </button>
+                                    <p className="luxury-text-muted text-sm">Enter 6-digit code sent to {newPhone}</p>
+                                    <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="123456" className="w-full luxury-input text-center tracking-widest text-xl" />
+                                    <button onClick={handleVerifyOtp} className="w-full gold-button">Verify</button>
+                                    <button onClick={() => setPhoneStep('input')} className="w-full luxury-text-muted text-sm hover:underline">Change Number</button>
                                 </div>
                             )}
                         </div>

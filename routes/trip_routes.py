@@ -25,6 +25,18 @@ DEMO_USER = {
     'name': 'Demo User'
 }
 
+def get_current_user():
+    """Get user ID from X-User-Id header or use default DEMO_USER.
+    This allows personalized trips per browser session.
+    """
+    user_id = request.headers.get('X-User-Id')
+    print(f"DEBUG get_current_user: X-User-Id header = {user_id}")
+    print(f"DEBUG get_current_user: All headers = {dict(request.headers)}")
+    if user_id:
+        return {'user_id': user_id, 'email': 'user@vayaa.in', 'name': 'User'}
+    print("DEBUG get_current_user: Falling back to DEMO_USER")
+    return DEMO_USER
+
 @trip_bp.route('/', methods=['POST'])
 @trip_bp.route('/create', methods=['POST'])
 def create_trip():
@@ -43,7 +55,7 @@ def create_trip():
     """
     try:
         data = request.get_json()
-        current_user = DEMO_USER  # Use demo user for no-auth mode
+        current_user = get_current_user()  # Use personalized user ID
         
         # Validate required fields
         required_fields = ['destination', 'start_date', 'end_date', 'location_coords']
@@ -101,7 +113,12 @@ def get_trips():
     GET /trips/
     """
     try:
-        current_user = DEMO_USER  # Use demo user for no-auth mode
+        current_user = get_current_user()  # Use personalized user ID
+        
+        # DEBUG: Print header and resolved user
+        print(f"DEBUG: Headers X-User-Id: {request.headers.get('X-User-Id')}")
+        print(f"DEBUG: Resolved User ID: {current_user['user_id']}")
+        
         trips = get_user_trip_list(current_user['user_id'])
         
         return jsonify({

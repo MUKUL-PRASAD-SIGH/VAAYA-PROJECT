@@ -1,8 +1,8 @@
-/* Experiences Marketplace Styles */
+/* Experiences Marketplace - Luxury Panorama Glass Style */
 .experiences-marketplace {
     min-height: 100vh;
-    padding-top: 70px;
-    background: linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%);
+    padding-top: 0;
+    background: linear-gradient(135deg, #0a1a20 0%, #0f2027 50%, #1a3a45 100%);
 }
 
 /* User Badges Bar */
@@ -11,15 +11,18 @@
     align-items: center;
     gap: 12px;
     padding: 12px 24px;
-    background: linear-gradient(90deg, rgba(168, 85, 247, 0.15) 0%, rgba(102, 126, 234, 0.15) 100%);
-    border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+    background: rgba(196, 163, 90, 0.1);
+    border-bottom: 1px solid rgba(196, 163, 90, 0.2);
     flex-wrap: wrap;
 }
 
 .badges-label {
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.5);
     font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .user-badge {
@@ -27,31 +30,18 @@
     align-items: center;
     gap: 6px;
     padding: 6px 14px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--badge-color, #a855f7);
+    background: rgba(196, 163, 90, 0.15);
+    border: 1px solid #c4a35a;
     border-radius: 20px;
-    color: var(--badge-color, #a855f7);
+    color: #c4a35a;
     font-size: 0.85rem;
     font-weight: 600;
-    animation: badgePulse 2s infinite;
-}
-
-@keyframes badgePulse {
-
-    0%,
-    100% {
-        box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
-    }
-
-    50% {
-        box-shadow: 0 0 0 8px rgba(168, 85, 247, 0);
-    }
 }
 
 .bookings-count {
     margin-left: auto;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(245, 245, 245, 0.4);
     padding: 4px 12px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
@@ -59,36 +49,11 @@
 
 /* Hero Section */
 .marketplace-hero {
-    padding: 60px 24px;
-    background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+    padding: 80px 24px;
+    background: linear-gradient(135deg, rgba(26, 74, 92, 0.3) 0%, rgba(45, 106, 124, 0.2) 100%);
     text-align: center;
     position: relative;
-    overflow: hidden;
-}
-
-.marketplace-hero::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 50%);
-    animation: pulse 15s ease-in-out infinite;
-}
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 0.3;
-    }
-
-    50% {
-        transform: scale(1.1);
-        opacity: 0.5;
-    }
+    border-bottom: 1px solid rgba(196, 163, 90, 0.2);
 }
 
 .hero-content {
@@ -99,19 +64,18 @@
 }
 
 .hero-content h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #fff;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    font-weight: 600;
+    font-style: italic;
+    color: #c4a35a;
     margin-bottom: 12px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .hero-content p {
+    font-family: 'Inter', sans-serif;
     font-size: 1.1rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(245, 245, 245, 0.6);
     margin-bottom: 32px;
 }
 
@@ -120,8 +84,8 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
     border-radius: 16px;
     padding: 12px 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -130,34 +94,35 @@
 }
 
 .search-icon {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(245, 245, 245, 0.4);
 }
 
 .search-input {
     flex: 1;
     background: transparent;
     border: none;
-    color: #fff;
+    color: #f5f5f5;
     font-size: 1rem;
     outline: none;
+    font-family: 'Inter', sans-serif;
 }
 
 .search-input::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(245, 245, 245, 0.3);
 }
 
 .filter-btn {
-    background: rgba(102, 126, 234, 0.3);
-    border: none;
+    background: rgba(196, 163, 90, 0.2);
+    border: 1px solid rgba(196, 163, 90, 0.3);
     padding: 10px;
     border-radius: 10px;
-    color: #667eea;
+    color: #c4a35a;
     cursor: pointer;
     transition: all 0.3s;
 }
 
 .filter-btn:hover {
-    background: rgba(102, 126, 234, 0.5);
+    background: rgba(196, 163, 90, 0.3);
 }
 
 /* Hero Stats */
@@ -176,14 +141,18 @@
 
 .stat-value {
     display: block;
-    font-size: 2rem;
-    font-weight: 700;
-    color: #fff;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #c4a35a;
 }
 
 .stat-label {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    color: rgba(245, 245, 245, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Categories Section */
@@ -203,24 +172,27 @@
     align-items: center;
     gap: 8px;
     padding: 12px 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 30px;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(245, 245, 245, 0.6);
     cursor: pointer;
     transition: all 0.3s;
     white-space: nowrap;
+    font-family: 'Inter', sans-serif;
 }
 
 .category-chip:hover {
-    background: rgba(102, 126, 234, 0.2);
-    border-color: rgba(102, 126, 234, 0.4);
+    background: rgba(196, 163, 90, 0.1);
+    border-color: rgba(196, 163, 90, 0.3);
+    color: #c4a35a;
 }
 
 .category-chip.active {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-color: transparent;
-    color: #fff;
+    background: #c4a35a;
+    border-color: #c4a35a;
+    color: #1a1a1a;
 }
 
 /* Section Header */
@@ -233,9 +205,11 @@
 }
 
 .section-header h2 {
-    font-size: 1.5rem;
-    color: #fff;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+    color: #c4a35a;
     font-weight: 600;
+    font-style: italic;
 }
 
 .ai-badge {
@@ -243,20 +217,15 @@
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    background: linear-gradient(135deg, #667eea30, #764ba230);
+    background: rgba(196, 163, 90, 0.15);
     border-radius: 20px;
     font-size: 0.75rem;
-    color: #667eea;
+    color: #c4a35a;
+    border: 1px solid rgba(196, 163, 90, 0.3);
 }
 
 /* Experience Grid */
-.experiences-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
-    padding: 0 24px 40px;
-}
-
+.experiences-grid,
 .loading-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -266,18 +235,18 @@
 
 /* Experience Card */
 .experience-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
     border-radius: 20px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.4s ease;
 }
 
 .experience-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
-    border-color: rgba(102, 126, 234, 0.4);
+    box-shadow: 0 20px 40px rgba(196, 163, 90, 0.15);
+    border-color: rgba(196, 163, 90, 0.3);
 }
 
 .card-image {
@@ -332,8 +301,8 @@
 }
 
 .favorite-btn.active {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.2);
+    color: #c4a35a;
+    background: rgba(196, 163, 90, 0.2);
 }
 
 .favorite-btn:hover {
@@ -353,10 +322,11 @@
 }
 
 .category-tag {
-    font-size: 0.75rem;
-    color: #667eea;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    color: #c4a35a;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     font-weight: 600;
 }
 
@@ -365,13 +335,14 @@
     align-items: center;
     gap: 4px;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.5);
 }
 
 .card-title {
-    font-size: 1.1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
     font-weight: 600;
-    color: #fff;
+    color: #f5f5f5;
     margin-bottom: 16px;
     line-height: 1.4;
     display: -webkit-box;
@@ -393,7 +364,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #1a4a5c, #2d6a7c);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -409,8 +380,9 @@
 .host-name {
     display: block;
     font-size: 0.9rem;
-    color: #fff;
+    color: #f5f5f5;
     font-weight: 500;
+    font-family: 'Inter', sans-serif;
 }
 
 .host-rating {
@@ -418,7 +390,7 @@
     align-items: center;
     gap: 4px;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.5);
 }
 
 .hospitality-score {
@@ -426,7 +398,7 @@
     align-items: center;
     gap: 2px;
     margin-left: 8px;
-    color: #fbbf24;
+    color: #c4a35a;
 }
 
 /* Card Meta */
@@ -435,8 +407,9 @@
     gap: 16px;
     margin-bottom: 16px;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
     border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .card-meta span {
@@ -444,7 +417,8 @@
     align-items: center;
     gap: 6px;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.5);
+    font-family: 'Inter', sans-serif;
 }
 
 /* Card Footer */
@@ -460,9 +434,10 @@
 }
 
 .price {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #fff;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #c4a35a;
 }
 
 .price.free {
@@ -470,37 +445,41 @@
 }
 
 .per-person {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    color: rgba(245, 245, 245, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .book-btn {
     display: flex;
     align-items: center;
     gap: 4px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: #c4a35a;
     border: none;
     padding: 12px 20px;
     border-radius: 12px;
-    color: #fff;
+    color: #1a1a1a;
     font-weight: 600;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     transition: all 0.3s;
 }
 
 .book-btn:hover {
     transform: translateX(4px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(196, 163, 90, 0.3);
 }
 
 /* Skeleton Loading */
 .experience-card.skeleton {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .skeleton-image {
     height: 200px;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 100%);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 100%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
 }
@@ -511,7 +490,7 @@
 
 .skeleton-line {
     height: 16px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     margin-bottom: 12px;
 }
@@ -547,14 +526,15 @@
 }
 
 .booking-modal {
-    background: #1a1a2e;
+    background: rgba(15, 32, 39, 0.95);
+    backdrop-filter: blur(20px);
     border-radius: 24px;
     max-width: 500px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(196, 163, 90, 0.2);
 }
 
 .close-btn {
@@ -565,7 +545,7 @@
     border: none;
     padding: 8px;
     border-radius: 50%;
-    color: #fff;
+    color: #f5f5f5;
     cursor: pointer;
     z-index: 10;
     transition: all 0.3s;
@@ -587,20 +567,22 @@
 
 .modal-title {
     padding: 20px;
-    background: linear-gradient(180deg, transparent, #1a1a2e);
+    background: linear-gradient(180deg, transparent, rgba(15, 32, 39, 0.95));
     margin-top: -60px;
     position: relative;
 }
 
 .modal-title h2 {
-    font-size: 1.25rem;
-    color: #fff;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    color: #c4a35a;
     margin-bottom: 4px;
 }
 
 .modal-title p {
+    font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.6);
 }
 
 .modal-body {
@@ -608,8 +590,11 @@
 }
 
 .modal-body h3 {
-    font-size: 1rem;
-    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    color: rgba(245, 245, 245, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
     margin-bottom: 16px;
     margin-top: 20px;
 }
@@ -626,22 +611,23 @@
     align-items: center;
     gap: 4px;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
     border: 2px solid transparent;
     border-radius: 12px;
-    color: #fff;
+    color: #f5f5f5;
     cursor: pointer;
     transition: all 0.3s;
+    font-family: 'Inter', sans-serif;
 }
 
 .slot-btn:hover {
-    background: rgba(102, 126, 234, 0.1);
-    border-color: rgba(102, 126, 234, 0.3);
+    background: rgba(196, 163, 90, 0.1);
+    border-color: rgba(196, 163, 90, 0.3);
 }
 
 .slot-btn.selected {
-    background: rgba(102, 126, 234, 0.2);
-    border-color: #667eea;
+    background: rgba(196, 163, 90, 0.15);
+    border-color: #c4a35a;
 }
 
 .slot-date {
@@ -650,7 +636,7 @@
 
 .slot-time {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.5);
 }
 
 .guests-selector {
@@ -658,26 +644,27 @@
     align-items: center;
     gap: 20px;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
     padding: 12px 24px;
     border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .guests-selector button {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(196, 163, 90, 0.3);
     background: transparent;
-    color: #fff;
+    color: #c4a35a;
     font-size: 1.25rem;
     cursor: pointer;
     transition: all 0.3s;
 }
 
 .guests-selector button:hover:not(:disabled) {
-    background: rgba(102, 126, 234, 0.3);
-    border-color: #667eea;
+    background: rgba(196, 163, 90, 0.2);
+    border-color: #c4a35a;
 }
 
 .guests-selector button:disabled {
@@ -686,9 +673,10 @@
 }
 
 .guests-selector span {
+    font-family: 'Cormorant Garamond', serif;
     font-size: 1.5rem;
     font-weight: 600;
-    color: #fff;
+    color: #c4a35a;
     min-width: 40px;
     text-align: center;
 }
@@ -706,7 +694,8 @@
     background: rgba(34, 197, 94, 0.1);
     border-radius: 10px;
     margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(245, 245, 245, 0.8);
+    font-family: 'Inter', sans-serif;
 }
 
 .what-included li svg {
@@ -718,7 +707,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .total-price {
@@ -727,30 +716,35 @@
 }
 
 .total-price span:first-child {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    color: rgba(245, 245, 245, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .total-price .amount {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #fff;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #c4a35a;
 }
 
 .confirm-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: #c4a35a;
     border: none;
     padding: 14px 28px;
     border-radius: 12px;
-    color: #fff;
+    color: #1a1a1a;
     font-weight: 600;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     transition: all 0.3s;
 }
 
 .confirm-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(196, 163, 90, 0.3);
 }
 
 .confirm-btn:disabled {
@@ -772,51 +766,62 @@
 
 .success-step h2,
 .payment-step h2 {
-    color: #fff;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
     margin-bottom: 12px;
 }
 
 .success-step p,
 .payment-step p {
-    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.6);
     margin-bottom: 24px;
 }
 
 .booking-summary {
     text-align: left;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .booking-summary p {
     margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(245, 245, 245, 0.8);
+    font-family: 'Inter', sans-serif;
 }
 
 .done-btn {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: #22c55e;
     border: none;
-    padding: 14px 40px;
+    padding: 14px 28px;
     border-radius: 12px;
     color: #fff;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.3s;
+}
+
+.done-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
     .hero-content h1 {
-        font-size: 1.75rem;
+        font-size: 2rem;
     }
 
     .hero-stats {
         gap: 24px;
+        flex-wrap: wrap;
     }
 
     .stat-value {
-        font-size: 1.5rem;
+        font-size: 2rem;
     }
 
     .experiences-grid {

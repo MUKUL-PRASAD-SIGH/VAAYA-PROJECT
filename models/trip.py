@@ -27,7 +27,19 @@ def create_trip(user_id, destination, start_date, end_date, preferences=None):
 def get_user_trips(user_id):
     """Get all trips for a user"""
     from bson.objectid import ObjectId
-    return list(trips_collection.find({'user_id': ObjectId(user_id)}))
+    print(f"DEBUG get_user_trips: Input user_id = {user_id}, type = {type(user_id)}")
+    try:
+        # Try as ObjectId first (for real auth)
+        query_id = ObjectId(user_id)
+        print(f"DEBUG get_user_trips: Converted to ObjectId = {query_id}")
+    except:
+        # Fallback to string (for demo/session users)
+        query_id = str(user_id)
+        print(f"DEBUG get_user_trips: Using string = {query_id}")
+    
+    result = list(trips_collection.find({'user_id': query_id}))
+    print(f"DEBUG get_user_trips: Found {len(result)} trips")
+    return result
 
 def get_trip_by_id(trip_id):
     """Get trip by ID"""

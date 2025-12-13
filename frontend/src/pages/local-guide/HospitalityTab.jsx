@@ -58,7 +58,16 @@ const BADGES = {
 function HospitalityTab() {
     const [offerings, setOfferings] = useState([])
     const [bookings, setBookings] = useState([])
-    const [stats, setStats] = useState({})
+    const [reviews, setReviews] = useState([])
+    const [stats, setStats] = useState({
+        hospitality_score: 0,
+        total_earnings: 0,
+        total_bookings: 0,
+        avg_rating: 0,
+        completion_rate: 100,
+        this_month_earnings: 0,
+        repeat_guests: 0
+    })
     const [loading, setLoading] = useState(true)
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [activeTab, setActiveTab] = useState('offerings')
@@ -73,106 +82,51 @@ function HospitalityTab() {
         try {
             const [expRes, bookRes, statsRes] = await Promise.all([
                 hospitalityApi.getMyExperiences(),
-                hospitalityApi.getMyBookings(),
+                hospitalityApi.getHostBookings(),
                 hospitalityApi.getHostStats()
             ])
             setOfferings(expRes.data.experiences || [])
             setBookings(bookRes.data.bookings || [])
             setStats(statsRes.data || {})
+
+            // Load reviews separately
+            try {
+                const reviewsRes = await hospitalityApi.getHostReviews()
+                setReviews(reviewsRes.data.reviews || [])
+            } catch (e) {
+                console.log('Reviews not available yet')
+                setReviews([])
+            }
         } catch (error) {
             console.error('Failed to load data:', error)
-            setOfferings(getSampleOfferings())
-            setBookings(getSampleBookings())
-            setStats(getSampleStats())
+            // Keep empty states - no hardcoded fallbacks
+            setOfferings([])
+            setBookings([])
+            setStats({
+                hospitality_score: 0,
+                total_earnings: 0,
+                total_bookings: 0,
+                avg_rating: 0,
+                completion_rate: 100,
+                this_month_earnings: 0,
+                repeat_guests: 0
+            })
         } finally {
             setLoading(false)
         }
     }
 
-    const getSampleOfferings = () => [
-        {
-            _id: '1',
-            title: 'Traditional Cooking Class',
-            category: 'culinary',
-            price: 800,
-            guest_limit: 6,
-            avg_rating: 4.8,
-            reviews_count: 23,
-            total_bookings: 45,
-            status: 'active',
-            photos: ['https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400'],
-            description: 'Learn authentic recipes passed down through generations'
-        },
-        {
-            _id: '2',
-            title: 'Heritage Walk Tour',
-            category: 'cultural_event',
-            price: 500,
-            guest_limit: 10,
-            avg_rating: 4.9,
-            reviews_count: 56,
-            total_bookings: 89,
-            status: 'active',
-            photos: ['https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400'],
-            description: 'Explore hidden gems and historical landmarks'
-        },
-        {
-            _id: '3',
-            title: 'Sunrise Photography Session',
-            category: 'photography',
-            price: 1200,
-            guest_limit: 4,
-            avg_rating: 5.0,
-            reviews_count: 12,
-            total_bookings: 28,
-            status: 'active',
-            photos: ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400'],
-            description: 'Capture stunning moments at golden hour'
+    // Helper to get category icon
+    const getCategoryIcon = (category) => {
+        const icons = {
+            culinary: '🍳',
+            cultural_event: '🎭',
+            adventure: '🏔️',
+            homestay: '🏡',
+            photography: '📸'
         }
-    ]
-
-    const getSampleBookings = () => [
-        {
-            _id: 'b1',
-            experience_id: '1',
-            experience: { title: 'Traditional Cooking Class' },
-            guest: { name: 'Sarah Wilson', avatar: null },
-            slot: '2025-12-18T10:00:00',
-            guests: 2,
-            status: 'confirmed',
-            total_amount: 1600
-        },
-        {
-            _id: 'b2',
-            experience_id: '2',
-            experience: { title: 'Heritage Walk Tour' },
-            guest: { name: 'Mike Johnson', avatar: null },
-            slot: '2025-12-19T16:00:00',
-            guests: 4,
-            status: 'pending',
-            total_amount: 2000
-        },
-        {
-            _id: 'b3',
-            experience_id: '1',
-            experience: { title: 'Traditional Cooking Class' },
-            guest: { name: 'Emily Chen', avatar: null },
-            slot: '2025-12-20T11:00:00',
-            guests: 3,
-            status: 'pending',
-            total_amount: 2400
-        }
-    ]
-
-    const getSampleStats = () => ({
-        hospitality_score: 92.5,
-        total_earnings: 45000,
-        total_bookings: 134,
-        avg_rating: 4.85,
-        completion_rate: 98,
-        this_month_earnings: 12500,
-        repeat_guests: 28
-    })
+        return icons[category] || '✨'
+    }
 
     const earnedBadges = Object.values(BADGES).filter(badge => badge.requirement(stats))
     const isTopHost = stats.avg_rating >= 4.7
@@ -204,36 +158,6 @@ function HospitalityTab() {
     }
 
     const pendingCount = bookings.filter(b => b.status === 'pending').length
-
-    const sampleReviews = [
-        {
-            _id: 'r1',
-            guest: { name: 'Emily Chen' },
-            experience: 'Traditional Cooking Class',
-            rating: 5,
-            review: 'Absolutely wonderful experience! The cooking class was authentic and the host was so welcoming. Learned to make the most amazing dishes!',
-            timestamp: '2 days ago',
-            helpful: 12
-        },
-        {
-            _id: 'r2',
-            guest: { name: 'David Brown' },
-            experience: 'Heritage Walk Tour',
-            rating: 5,
-            review: 'Best cultural experience I\'ve had in India. The stories and history shared were incredible. Highly recommend!',
-            timestamp: '5 days ago',
-            helpful: 8
-        },
-        {
-            _id: 'r3',
-            guest: { name: 'Lisa Wang' },
-            experience: 'Sunrise Photography',
-            rating: 5,
-            review: 'The views were breathtaking and our guide knew exactly where to go for the best shots. Magic!',
-            timestamp: '1 week ago',
-            helpful: 15
-        }
-    ]
 
     return (
         <div className="hospitality-tab-v2">
@@ -362,7 +286,7 @@ function HospitalityTab() {
                 )}
 
                 {activeTab === 'reviews' && (
-                    <ReviewsSection reviews={sampleReviews} stats={stats} />
+                    <ReviewsSection reviews={reviews} stats={stats} />
                 )}
             </div>
 
@@ -631,15 +555,67 @@ function CreateOfferingModal({ onClose, onCreated }) {
         price: 0,
         guest_limit: 6,
         duration: '3 hours',
-        city: ''
+        city: '',
+        latitude: '',
+        longitude: ''
     })
     const [loading, setLoading] = useState(false)
+
+    // Auto-fill coordinates on mount
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setFormData(prev => ({
+                        ...prev,
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    }))
+                },
+                (error) => console.log('Location access denied:', error)
+            )
+        }
+    }, [])
+
+    const handleLocationClick = () => {
+        if (navigator.geolocation) {
+            setLoading(true) // Temp loading indicator for location
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setFormData(prev => ({
+                        ...prev,
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    }))
+                    setLoading(false)
+                },
+                (error) => {
+                    console.error('Error getting location:', error)
+                    alert('Could not get your location. Please enter manually.')
+                    setLoading(false)
+                }
+            )
+        } else {
+            alert('Geolocation is not supported by your browser')
+        }
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
+
+        // Construct payload with location object
+        const payload = {
+            ...formData,
+            location: {
+                type: 'Point',
+                coordinates: [parseFloat(formData.longitude) || 0, parseFloat(formData.latitude) || 0],
+                address: formData.city
+            }
+        }
+
         try {
-            await hospitalityApi.createExperience(formData)
+            await hospitalityApi.createExperience(payload)
             onCreated()
         } catch (error) {
             console.error('Failed to create:', error)
@@ -700,6 +676,53 @@ function CreateOfferingModal({ onClose, onCreated }) {
                                 placeholder="e.g., Mumbai"
                                 required
                             />
+                        </div>
+                    </div>
+
+                    <div className="form-row-v2">
+                        <div className="form-group-v2">
+                            <label>Latitude</label>
+                            <input
+                                type="number"
+                                step="any"
+                                value={formData.latitude}
+                                onChange={e => setFormData({ ...formData, latitude: e.target.value })}
+                                placeholder="e.g. 12.9716"
+                            />
+                        </div>
+                        <div className="form-group-v2">
+                            <label>Longitude</label>
+                            <input
+                                type="number"
+                                step="any"
+                                value={formData.longitude}
+                                onChange={e => setFormData({ ...formData, longitude: e.target.value })}
+                                placeholder="e.g. 77.5946"
+                            />
+                        </div>
+                        <div className="form-group-v2" style={{ display: 'flex', alignItems: 'flex-end' }}>
+                            <button
+                                type="button"
+                                className="location-btn-v2"
+                                onClick={handleLocationClick}
+                                style={{
+                                    padding: '10px',
+                                    background: 'rgba(34, 197, 94, 0.1)',
+                                    color: '#22c55e',
+                                    border: '1px solid #22c55e',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    height: '42px'
+                                }}
+                            >
+                                <MapPin size={16} />
+                                <span>Get Loc</span>
+                            </button>
                         </div>
                     </div>
 

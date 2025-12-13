@@ -7,7 +7,11 @@ from models.user import (
     find_user_by_firebase_uid, create_user_from_firebase,
     update_user_by_firebase_uid, add_ai_message, get_user_ai_messages
 )
-from utils.jwt_utils import token_required
+from utils.jwt_utils import token_required, generate_token
+
+# ... (omitted)
+
+
 from utils.firebase_utils import firebase_required
 from utils.validators import validate_coordinates, sanitize_string
 from bson.objectid import ObjectId
@@ -422,6 +426,9 @@ def onboard_user(current_user):
             name=name
         )
         
+        # Generate backend token
+        token = generate_token(user['_id'], user['role'])
+        
         return jsonify({
             'message': 'User onboarded successfully',
             'user': {
@@ -431,7 +438,8 @@ def onboard_user(current_user):
                 'role': user['role'],
                 'preference': user['preference'],
                 'name': user.get('name')
-            }
+            },
+            'token': token
         }), 201
         
     except Exception as e:
@@ -452,6 +460,9 @@ def get_firebase_user_profile(current_user):
         if not user:
             return jsonify({'error': 'User not onboarded yet'}), 404
         
+        # Generate backend token
+        token = generate_token(user['_id'], user['role'])
+        
         return jsonify({
             'user': {
                 'id': str(user['_id']),
@@ -463,7 +474,8 @@ def get_firebase_user_profile(current_user):
                 'preferences': user.get('preferences', {}),
                 'points': user.get('points', 0),
                 'completed_quests': user.get('completed_quests', 0)
-            }
+            },
+            'token': token
         }), 200
         
     except Exception as e:

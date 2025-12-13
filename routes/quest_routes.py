@@ -11,7 +11,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import os, math
 
-from db import db
+from models import db
 from ai.quest_verifier import verify_cleanliness
 from utils.jwt_utils import token_required
 
@@ -195,12 +195,7 @@ def complete_quest(current_user, quest_id):
 Returns all available quests for display in the frontend
 """
 
-from flask import Blueprint, request, jsonify
-from bson import ObjectId
-from datetime import datetime
-from db import db
-
-quest_bp = Blueprint('quests', __name__, url_prefix='/api/quests')
+# Routes continue below (Blueprint already defined above)
 
 
 @quest_bp.route('/all', methods=['GET'])
@@ -210,7 +205,76 @@ def get_all_quests():
     Fetch all active quests for display in the React frontend.
     """
     try:
-        # Fetch all quests (you can add filters here later)
+        # Check if quests exist, if not seed them
+        if db.quests.count_documents({}) == 0:
+            demo_quests = [
+                {
+                    '_id': 'demo-1',
+                    'title': 'Clean Cups Outside CSE Lab 3',
+                    'description': 'Help keep our campus clean by collecting disposable cups scattered outside CSE Lab 3. Take before and after photos to verify your cleanup effort!',
+                    'location_name': 'CSE Lab 3, MSRIT',
+                    'points': 50,
+                    'difficulty': 'Easy',
+                    'category': 'environment',
+                    'status': 'active',
+                    'created_at': datetime.utcnow(),
+                    'requirements': [
+                        'Take a "before" photo showing cups/trash',
+                        'Collect all disposable cups and trash',
+                        'Take an "after" photo showing clean area',
+                        'Dispose trash in designated bins'
+                    ],
+                },
+                {
+                    '_id': 'demo-2',
+                    'title': 'Clean Beach Quest',
+                    'description': 'Help clean up the beach and earn rewards!',
+                    'location_name': 'Malpe Beach, Udupi',
+                    'points': 100,
+                    'difficulty': 'Easy',
+                    'category': 'environment',
+                    'status': 'active',
+                    'created_at': datetime.utcnow(),
+                    'requirements': [
+                        'Take a photo of collected trash',
+                        'Upload proof of disposal'
+                    ],
+                },
+                {
+                    '_id': 'demo-3',
+                    'title': 'Heritage Walk',
+                    'description': 'Explore historical monuments and learn about local culture.',
+                    'location_name': 'Mysore Palace',
+                    'points': 150,
+                    'difficulty': 'Medium',
+                    'category': 'culture',
+                    'status': 'active',
+                    'created_at': datetime.utcnow(),
+                    'requirements': [
+                        'Visit 3 monuments',
+                        'Take photos at each location'
+                    ],
+                },
+                {
+                    '_id': 'demo-4',
+                    'title': 'Local Food Trail',
+                    'description': 'Discover authentic local cuisine from street vendors.',
+                    'location_name': 'VV Puram Food Street, Bangalore',
+                    'points': 75,
+                    'difficulty': 'Easy',
+                    'category': 'food',
+                    'status': 'active',
+                    'created_at': datetime.utcnow(),
+                    'requirements': [
+                        'Try 3 different foods',
+                        'Share reviews'
+                    ],
+                },
+            ]
+            db.quests.insert_many(demo_quests)
+            print("🌱 Seeded database with demo quests")
+
+        # Fetch all quests
         quests = list(db.quests.find({}).sort("created_at", -1))
         result = []
 
@@ -223,71 +287,10 @@ def get_all_quests():
                 'points': q.get('points', 50),
                 'difficulty': q.get('difficulty', 'Easy'),
                 'category': q.get('category', 'environment'),
-                'requirements': q.get('requirements', [
-                    'Take before and after cleanup photos',
-                    'Dispose collected trash properly',
-                    'Submit proof through the app'
-                ]),
+                'status': q.get('status', 'active'),
+                'completed_at': q.get('verified_at'),  # Map verified_at to completed_at
+                'requirements': q.get('requirements', []),
             })
-
-        # If no quests in database, return demo quests
-        if len(result) == 0:
-            result = [
-                {
-                    'id': 'demo-1',
-                    'name': 'Clean Cups Outside CSE Lab 3',
-                    'description': 'Help keep our campus clean by collecting disposable cups scattered outside CSE Lab 3. Take before and after photos to verify your cleanup effort!',
-                    'location': 'CSE Lab 3, MSRIT',
-                    'points': 50,
-                    'difficulty': 'Easy',
-                    'category': 'environment',
-                    'requirements': [
-                        'Take a "before" photo showing cups/trash',
-                        'Collect all disposable cups and trash',
-                        'Take an "after" photo showing clean area',
-                        'Dispose trash in designated bins'
-                    ],
-                },
-                {
-                    'id': 'demo-2',
-                    'name': 'Clean Beach Quest',
-                    'description': 'Help clean up the beach and earn rewards!',
-                    'location': 'Malpe Beach, Udupi',
-                    'points': 100,
-                    'difficulty': 'Easy',
-                    'category': 'environment',
-                    'requirements': [
-                        'Take a photo of collected trash',
-                        'Upload proof of disposal'
-                    ],
-                },
-                {
-                    'id': 'demo-3',
-                    'name': 'Heritage Walk',
-                    'description': 'Explore historical monuments and learn about local culture.',
-                    'location': 'Mysore Palace',
-                    'points': 150,
-                    'difficulty': 'Medium',
-                    'category': 'culture',
-                    'requirements': [
-                        'Visit 3 monuments',
-                        'Take photos at each location'
-                    ],
-                },
-                {
-                    'id': 'demo-4',
-                    'name': 'Local Food Trail',
-                    'description': 'Discover authentic local cuisine from street vendors.',
-                    'location': 'VV Puram Food Street, Bangalore',
-                    'points': 75,
-                    'difficulty': 'Easy',
-                    'category': 'food',
-                    'requirements': [
-                        'Try 3 different foods',
-                        'Share reviews'
-                    ],
-                },
-            ]
 
         return jsonify({
             'success': True,

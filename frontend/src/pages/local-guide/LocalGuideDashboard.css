@@ -1,16 +1,16 @@
-/* Local Guide Dashboard Styles */
+/* Local Guide Dashboard - Luxury Panorama Glass Style */
 .local-guide-dashboard {
     display: flex;
     min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+    background: linear-gradient(135deg, #0a1a20 0%, #0f2027 50%, #1a3a45 100%);
 }
 
 /* Sidebar Styles */
 .dashboard-sidebar {
     width: 280px;
-    background: rgba(20, 20, 35, 0.95);
+    background: rgba(15, 32, 39, 0.95);
     backdrop-filter: blur(20px);
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(196, 163, 90, 0.1);
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -21,37 +21,43 @@
 .sidebar-header {
     padding: 2rem 1.5rem;
     text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(196, 163, 90, 0.1);
 }
 
 .guide-avatar {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a4a5c 0%, #2d6a7c 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 1rem;
     font-size: 2rem;
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 32px rgba(196, 163, 90, 0.2);
+    border: 2px solid rgba(196, 163, 90, 0.3);
 }
 
 .sidebar-header h2 {
-    color: #fff;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
     font-size: 1.25rem;
     margin: 0 0 0.5rem;
     font-weight: 600;
+    font-style: italic;
 }
 
 .guide-badge {
     display: inline-block;
     padding: 0.25rem 0.75rem;
-    background: linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%);
-    color: #0f0f1a;
-    font-size: 0.75rem;
+    background: #c4a35a;
+    color: #1a1a1a;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
     font-weight: 600;
     border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .sidebar-nav {
@@ -68,7 +74,8 @@
     padding: 1rem 1.5rem;
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.5);
+    font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -76,13 +83,13 @@
 }
 
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
+    background: rgba(196, 163, 90, 0.05);
+    color: #f5f5f5;
 }
 
 .nav-item.active {
-    background: rgba(102, 126, 234, 0.15);
-    color: #fff;
+    background: rgba(196, 163, 90, 0.1);
+    color: #c4a35a;
 }
 
 .nav-item.active::before {
@@ -91,9 +98,9 @@
     left: 0;
     top: 0;
     bottom: 0;
-    width: 4px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 0 4px 4px 0;
+    width: 3px;
+    background: #c4a35a;
+    border-radius: 0 3px 3px 0;
 }
 
 .nav-icon {
@@ -106,11 +113,12 @@
 
 .sidebar-footer {
     padding: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(196, 163, 90, 0.1);
 }
 
 .earnings-preview {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    background: rgba(196, 163, 90, 0.1);
+    border: 1px solid rgba(196, 163, 90, 0.2);
     border-radius: 12px;
     padding: 1rem;
     text-align: center;
@@ -118,16 +126,20 @@
 
 .earnings-label {
     display: block;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.85rem;
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.5);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     margin-bottom: 0.5rem;
 }
 
 .earnings-amount {
     display: block;
-    color: #92fe9d;
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 1.75rem;
+    font-weight: 600;
 }
 
 /* Main Content Styles */
@@ -143,18 +155,21 @@
     align-items: flex-start;
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(196, 163, 90, 0.1);
 }
 
 .header-left h1 {
-    color: #fff;
-    font-size: 2rem;
-    font-weight: 700;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 2.5rem;
+    font-weight: 600;
+    font-style: italic;
     margin: 0 0 0.5rem;
 }
 
 .header-subtitle {
-    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.5);
     font-size: 1rem;
     margin: 0;
 }
@@ -168,17 +183,18 @@
     position: relative;
     width: 48px;
     height: 48px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    color: #fff;
+    color: #f5f5f5;
     font-size: 1.25rem;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .notification-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(196, 163, 90, 0.1);
+    border-color: rgba(196, 163, 90, 0.3);
     transform: translateY(-2px);
 }
 
@@ -188,8 +204,8 @@
     right: -5px;
     width: 20px;
     height: 20px;
-    background: #ff6b6b;
-    color: #fff;
+    background: #c4a35a;
+    color: #1a1a1a;
     font-size: 0.7rem;
     font-weight: 600;
     border-radius: 50%;
@@ -229,26 +245,27 @@
 
 .stat-card {
     background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 1.5rem;
     display: flex;
     align-items: center;
     gap: 1rem;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
 }
 
 .stat-card:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.05);
     transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 12px 40px rgba(196, 163, 90, 0.1);
+    border-color: rgba(196, 163, 90, 0.2);
 }
 
 .stat-icon {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    background: linear-gradient(135deg, #1a4a5c, #2d6a7c);
     border-radius: 14px;
     display: flex;
     align-items: center;
@@ -262,18 +279,22 @@
 }
 
 .stat-value {
-    color: #fff;
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 2rem;
+    font-weight: 600;
 }
 
 .stat-label {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.5);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .stat-trend {
-    color: #92fe9d;
+    color: #22c55e;
     font-size: 0.8rem;
     margin-top: 0.25rem;
 }
@@ -281,10 +302,12 @@
 /* Quick Actions */
 .quick-actions h3,
 .recent-activity h3 {
-    color: #fff;
-    font-size: 1.25rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 1.5rem;
     margin: 0 0 1rem;
     font-weight: 600;
+    font-style: italic;
 }
 
 .actions-grid {
@@ -302,19 +325,19 @@
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 14px;
-    color: #fff;
+    color: #f5f5f5;
+    font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .action-card:hover {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-    border-color: rgba(102, 126, 234, 0.3);
+    background: rgba(196, 163, 90, 0.1);
+    border-color: rgba(196, 163, 90, 0.3);
     transform: translateY(-4px);
 }
 
-/* Action Icon Wrapper */
 .action-icon-wrapper {
     position: relative;
     width: 50px;
@@ -322,12 +345,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(102, 126, 234, 0.15);
+    background: linear-gradient(135deg, #1a4a5c, #2d6a7c);
     border-radius: 14px;
-    color: #667eea;
+    color: #f5f5f5;
 }
 
-/* Hot Badge for New Post */
 .hot-badge {
     position: absolute;
     top: -8px;
@@ -335,15 +357,14 @@
     font-size: 1rem;
 }
 
-/* Unread Count Badge */
 .unread-count {
     position: absolute;
     top: -8px;
     right: -8px;
     min-width: 20px;
     height: 20px;
-    background: #ef4444;
-    color: #fff;
+    background: #c4a35a;
+    color: #1a1a1a;
     font-size: 0.7rem;
     font-weight: 600;
     border-radius: 10px;
@@ -353,30 +374,27 @@
     padding: 0 4px;
 }
 
-/* Pulse Animation for Create Quest */
 .action-icon-wrapper.pulse {
     animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+        box-shadow: 0 0 0 0 rgba(196, 163, 90, 0.4);
     }
 
     70% {
-        box-shadow: 0 0 0 15px rgba(102, 126, 234, 0);
+        box-shadow: 0 0 0 15px rgba(196, 163, 90, 0);
     }
 
     100% {
-        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+        box-shadow: 0 0 0 0 rgba(196, 163, 90, 0);
     }
 }
 
-/* Bounce Animation for New Post (Hot) */
 .action-icon-wrapper.bounce {
     animation: bounce 1s infinite;
-    background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(239, 68, 68, 0.2));
-    color: #fb923c;
+    background: linear-gradient(135deg, rgba(196, 163, 90, 0.3), rgba(196, 163, 90, 0.2));
 }
 
 @keyframes bounce {
@@ -398,11 +416,10 @@
     }
 }
 
-/* Shake Animation for Messages */
 .action-icon-wrapper.shake {
     animation: shake 2.5s infinite;
-    background: rgba(34, 211, 238, 0.15);
-    color: #22d3ee;
+    background: rgba(26, 74, 92, 0.3);
+    color: #c4a35a;
 }
 
 @keyframes shake {
@@ -424,16 +441,15 @@
     }
 }
 
-/* Hot card special styling */
 .action-card.hot {
-    border-color: rgba(251, 146, 60, 0.3);
-    background: rgba(251, 146, 60, 0.05);
+    border-color: rgba(196, 163, 90, 0.3);
+    background: rgba(196, 163, 90, 0.05);
 }
 
 .action-card.hot:hover {
-    background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%);
-    border-color: rgba(251, 146, 60, 0.5);
-    box-shadow: 0 8px 32px rgba(251, 146, 60, 0.3);
+    background: rgba(196, 163, 90, 0.15);
+    border-color: rgba(196, 163, 90, 0.5);
+    box-shadow: 0 8px 32px rgba(196, 163, 90, 0.2);
 }
 
 .action-icon {
@@ -443,6 +459,7 @@
 /* Recent Activity */
 .activity-list {
     background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 1rem;
@@ -463,20 +480,22 @@
 .activity-dot {
     width: 10px;
     height: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #c4a35a;
     border-radius: 50%;
     margin-top: 0.4rem;
     flex-shrink: 0;
 }
 
 .activity-content p {
-    color: #fff;
+    font-family: 'Inter', sans-serif;
+    color: #f5f5f5;
     margin: 0 0 0.25rem;
     font-size: 0.95rem;
 }
 
 .activity-time {
-    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.4);
     font-size: 0.8rem;
 }
 
@@ -518,7 +537,7 @@
         top: auto;
         flex-direction: row;
         border-right: none;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(196, 163, 90, 0.1);
     }
 
     .sidebar-header,
@@ -545,7 +564,7 @@
 
     .nav-item.active {
         background: transparent;
-        color: #667eea;
+        color: #c4a35a;
     }
 
     .dashboard-main {
@@ -555,7 +574,7 @@
     }
 
     .header-left h1 {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
     }
 
     .stats-grid {

@@ -1,11 +1,296 @@
 @import "tailwindcss";
 
+/* Google Fonts - Luxury Typography */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
+
 /* Tailwind v4 Theme Configuration */
 @theme {
     --color-purple-600: #9333ea;
     --color-purple-700: #7c3aed;
     --color-pink-600: #db2777;
     --color-pink-500: #ec4899;
+}
+
+/* ===== Premium Luxury Theme - Panorama Glass Lodge Style ===== */
+:root {
+    /* Core Colors */
+    --luxury-bg-dark: #0a1f2e;
+    --luxury-bg-darker: #061520;
+    --luxury-bg-navy: #0d1b2a;
+    --luxury-teal: #1a4a5c;
+    --luxury-teal-light: #2d6a7c;
+
+    /* Accent Colors */
+    --luxury-gold: #c4a35a;
+    --luxury-gold-light: #d4b86a;
+    --luxury-gold-dark: #a68b4a;
+    --luxury-bronze: #b08d57;
+
+    /* Text Colors */
+    --luxury-text-primary: #f5f5f5;
+    --luxury-text-secondary: #c8d4dc;
+    --luxury-text-muted: #8a9aa6;
+
+    /* Glass Effects */
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-bg-hover: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-border-hover: rgba(255, 255, 255, 0.15);
+
+    /* Aurora Gradient */
+    --aurora-gradient: linear-gradient(135deg, #0a1f2e 0%, #1a4a5c 50%, #0d1b2a 100%);
+    --aurora-glow: linear-gradient(180deg, rgba(45, 106, 124, 0.3) 0%, transparent 50%);
+
+    /* Typography */
+    --font-heading: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Premium Background Classes */
+.luxury-bg {
+    background: var(--luxury-bg-dark);
+}
+
+.luxury-bg-gradient {
+    background: var(--aurora-gradient);
+}
+
+.luxury-bg-aurora {
+    background: var(--luxury-bg-dark);
+    position: relative;
+}
+
+.luxury-bg-aurora::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: var(--aurora-glow);
+    pointer-events: none;
+}
+
+/* Glass Card Effects */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    transform: translateY(-2px);
+}
+
+/* Gold Button */
+.gold-button {
+    background: var(--luxury-gold);
+    color: #1a1a1a;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 0.25rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.875rem;
+}
+
+.gold-button:hover {
+    background: var(--luxury-gold-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(196, 163, 90, 0.3);
+}
+
+.gold-button-outline {
+    background: transparent;
+    color: var(--luxury-gold);
+    border: 1px solid var(--luxury-gold);
+    padding: 0.75rem 2rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.875rem;
+}
+
+.gold-button-outline:hover {
+    background: var(--luxury-gold);
+    color: #1a1a1a;
+}
+
+/* Luxury Typography */
+.luxury-heading {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--luxury-text-primary);
+    line-height: 1.2;
+}
+
+.luxury-heading-gold {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--luxury-gold);
+    line-height: 1.2;
+}
+
+.luxury-subheading {
+    font-family: var(--font-body);
+    font-weight: 300;
+    color: var(--luxury-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.75rem;
+}
+
+.luxury-text {
+    font-family: var(--font-body);
+    color: var(--luxury-text-primary);
+    line-height: 1.7;
+}
+
+.luxury-text-muted {
+    color: var(--luxury-text-muted);
+}
+
+/* Premium Input Fields */
+.luxury-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--luxury-text-primary);
+    padding: 0.875rem 1rem;
+    border-radius: 0.25rem;
+    font-family: var(--font-body);
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.luxury-input:focus {
+    outline: none;
+    border-color: var(--luxury-gold);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.luxury-input::placeholder {
+    color: var(--luxury-text-muted);
+}
+
+/* Select Dropdown Styling */
+select.luxury-input {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c4a35a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+    cursor: pointer;
+}
+
+select.luxury-input option {
+    background: #0f2027;
+    color: #f5f5f5;
+    padding: 0.75rem;
+}
+
+select.luxury-input option:hover,
+select.luxury-input option:checked {
+    background: #1a4a5c;
+}
+
+/* Photo Gallery Grid */
+.gallery-grid {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.gallery-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.gallery-grid-5 {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.gallery-item {
+    aspect-ratio: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.1);
+}
+
+/* Premium Stat Card */
+.luxury-stat-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.luxury-stat-value {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 400;
+    color: var(--luxury-gold);
+    line-height: 1;
+}
+
+.luxury-stat-label {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    color: var(--luxury-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.5rem;
+}
+
+/* Decorative Nordic Pattern (SVG) */
+.nordic-decoration {
+    position: absolute;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+/* Dark Scrollbar for Luxury Theme */
+.luxury-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.luxury-scrollbar::-webkit-scrollbar-track {
+    background: var(--luxury-bg-darker);
+}
+
+.luxury-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--luxury-teal);
+    border-radius: 3px;
+}
+
+.luxury-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--luxury-teal-light);
 }
 
 /* Global Styles */
@@ -126,6 +411,29 @@ body {
 
 .fade-in {
     animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Quest Marker Pulse Animation */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.5);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.quest-marker {
+    background: transparent !important;
+    border: none !important;
 }
 
 @keyframes slideIn {

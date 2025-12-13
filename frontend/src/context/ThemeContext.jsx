@@ -36,20 +36,20 @@ const defaultColors = {
 export const themePalettes = {
     // Light Themes
     cream_blue: {
-        name: 'Cream & Blue',
-        type: 'light',
+        name: 'Stranger Things',
+        type: 'dark',
         colors: {
-            background: '#EFECE3',
-            surface: '#FFFFFF',
-            surfaceAlt: '#F5F2EA',
-            primary: '#4A7BA7',
-            secondary: '#8FB4D4',
-            accent: '#2C5784',
-            text: '#1A1A1A',
-            textSecondary: '#4A4A4A',
-            textMuted: '#6B6B6B',
-            border: '#D4D1C8',
-            highlight: '#000000',
+            background: '#3b0b04',
+            surface: '#9b1906',
+            surfaceAlt: '#6d0d03',
+            primary: '#641104',
+            secondary: '#9d3903',
+            accent: '#28429b',
+            text: '#fdfaf9',
+            textSecondary: '#d1d5db',
+            textMuted: '#dae8ff',
+            border: '#092e68',
+            highlight: '#5558f7',
         }
     },
     lavender: {
@@ -102,6 +102,29 @@ export const themePalettes = {
             textMuted: '#707070',
             border: '#393E46',
             highlight: '#00FFF5',
+        }
+    },
+    // Premium Luxury Theme - Panorama Glass Lodge Style
+    luxury_panorama: {
+        name: 'Luxury Panorama',
+        type: 'dark',
+        colors: {
+            background: '#0a1f2e',
+            surface: 'rgba(255, 255, 255, 0.05)',
+            surfaceAlt: 'rgba(255, 255, 255, 0.08)',
+            primary: '#c4a35a',
+            secondary: '#d4b86a',
+            accent: '#2d6a7c',
+            text: '#f5f5f5',
+            textSecondary: '#c8d4dc',
+            textMuted: '#8a9aa6',
+            border: 'rgba(255, 255, 255, 0.1)',
+            highlight: '#c4a35a',
+            // Extra luxury colors
+            gold: '#c4a35a',
+            teal: '#1a4a5c',
+            tealLight: '#2d6a7c',
+            navy: '#0d1b2a',
         }
     },
 }

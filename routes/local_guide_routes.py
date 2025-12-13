@@ -74,6 +74,8 @@ def create_quest(current_user):
     """
     try:
         data = request.get_json()
+        print(f"DEBUG: create_quest received: {data}")
+        print(f"DEBUG: current_user: {current_user}")
         user_id = current_user.get('user_id')
         
         # Validate required fields

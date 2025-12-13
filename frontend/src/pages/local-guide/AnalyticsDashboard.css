@@ -1,4 +1,4 @@
-/* Analytics Dashboard Styles */
+/* Analytics Dashboard - Luxury Panorama Glass Style */
 .analytics-dashboard {
     display: flex;
     flex-direction: column;
@@ -21,19 +21,21 @@
     background: transparent;
     border: none;
     border-radius: 8px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.5);
+    font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .range-btn:hover {
-    color: #fff;
+    color: #f5f5f5;
 }
 
 .range-btn.active {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-    color: #fff;
+    background: rgba(196, 163, 90, 0.2);
+    color: #c4a35a;
+    border: 1px solid rgba(196, 163, 90, 0.3);
 }
 
 /* Stats Overview */
@@ -45,20 +47,22 @@
 
 .stat-card {
     background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 1.5rem;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
 }
 
 .stat-card:hover {
     background: rgba(255, 255, 255, 0.05);
     transform: translateY(-4px);
+    border-color: rgba(196, 163, 90, 0.2);
 }
 
 .stat-card.earnings {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-    border-color: rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, rgba(196, 163, 90, 0.1) 0%, rgba(196, 163, 90, 0.05) 100%);
+    border-color: rgba(196, 163, 90, 0.3);
 }
 
 .stat-header {
@@ -71,7 +75,7 @@
 .stat-icon {
     width: 48px;
     height: 48px;
-    background: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, #1a4a5c, #2d6a7c);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -87,8 +91,8 @@
 }
 
 .stat-trend.up {
-    background: rgba(74, 222, 128, 0.2);
-    color: #4ade80;
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
 }
 
 .stat-trend.down {
@@ -97,19 +101,23 @@
 }
 
 .stat-value {
-    color: #fff;
-    font-size: 2rem;
-    font-weight: 700;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 2.25rem;
+    font-weight: 600;
     margin-bottom: 0.25rem;
 }
 
 .stat-label {
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.5);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .stat-comparison {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(245, 245, 245, 0.4);
     font-size: 0.8rem;
     margin-top: 0.5rem;
 }
@@ -124,6 +132,7 @@
 /* Chart Section */
 .chart-section {
     background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 1.5rem;
@@ -137,9 +146,12 @@
 }
 
 .section-header h3 {
-    color: #fff;
-    font-size: 1.25rem;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 1.5rem;
     margin: 0;
+    font-weight: 600;
+    font-style: italic;
 }
 
 .chart-legend {
@@ -151,14 +163,14 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(245, 245, 245, 0.5);
     font-size: 0.85rem;
 }
 
 .legend-dot {
     width: 12px;
     height: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a4a5c, #2d6a7c);
     border-radius: 3px;
 }
 
@@ -186,7 +198,7 @@
 .chart-bar {
     width: 100%;
     max-width: 50px;
-    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(180deg, #c4a35a 0%, #a68b4a 100%);
     border-radius: 8px 8px 0 0;
     position: relative;
     display: flex;
@@ -202,7 +214,7 @@
 .bar-value {
     position: absolute;
     top: -30px;
-    color: #fff;
+    color: #c4a35a;
     font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
@@ -215,7 +227,7 @@
 }
 
 .bar-label {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(245, 245, 245, 0.5);
     font-size: 0.8rem;
     margin-top: 0.75rem;
 }
@@ -223,6 +235,7 @@
 /* Quests Section */
 .quests-section {
     background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 1.5rem;
@@ -245,18 +258,18 @@
 }
 
 .quest-row:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(196, 163, 90, 0.1);
 }
 
 .quest-rank {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+    background: linear-gradient(135deg, #1a4a5c, #2d6a7c);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: #f5f5f5;
     font-size: 0.85rem;
     font-weight: 600;
 }
@@ -266,7 +279,8 @@
 }
 
 .quest-info h4 {
-    color: #fff;
+    font-family: 'Inter', sans-serif;
+    color: #f5f5f5;
     font-size: 0.95rem;
     margin: 0 0 0.25rem;
 }
@@ -274,19 +288,21 @@
 .quest-meta {
     display: flex;
     gap: 1rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(245, 245, 245, 0.5);
     font-size: 0.8rem;
 }
 
 .quest-earnings {
-    color: #92fe9d;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 1.1rem;
 }
 
 /* Transactions Section */
 .transactions-section {
     background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 1.5rem;
@@ -295,14 +311,14 @@
 .view-all-btn {
     background: transparent;
     border: none;
-    color: #667eea;
+    color: #c4a35a;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .view-all-btn:hover {
-    color: #764ba2;
+    color: #d4b86a;
 }
 
 .transactions-list {
@@ -332,8 +348,8 @@
 }
 
 .transaction-icon.earning {
-    background: rgba(74, 222, 128, 0.2);
-    color: #4ade80;
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
 }
 
 .transaction-icon.withdrawal {
@@ -346,23 +362,24 @@
 }
 
 .transaction-info h4 {
-    color: #fff;
+    color: #f5f5f5;
     font-size: 0.95rem;
     margin: 0 0 0.25rem;
 }
 
 .transaction-date {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(245, 245, 245, 0.4);
     font-size: 0.8rem;
 }
 
 .transaction-amount {
-    font-size: 1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
     font-weight: 600;
 }
 
 .transaction-amount.earning {
-    color: #4ade80;
+    color: #22c55e;
 }
 
 .transaction-amount.withdrawal {
@@ -379,31 +396,36 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 2rem;
-    background: linear-gradient(135deg, rgba(146, 254, 157, 0.1) 0%, rgba(74, 222, 128, 0.1) 100%);
-    border: 1px solid rgba(146, 254, 157, 0.2);
+    background: linear-gradient(135deg, rgba(196, 163, 90, 0.1) 0%, rgba(196, 163, 90, 0.05) 100%);
+    border: 1px solid rgba(196, 163, 90, 0.2);
     border-radius: 20px;
 }
 
 .balance-label {
     display: block;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    color: rgba(245, 245, 245, 0.5);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     margin-bottom: 0.25rem;
 }
 
 .balance-amount {
     display: block;
-    color: #92fe9d;
-    font-size: 2rem;
-    font-weight: 700;
+    font-family: 'Cormorant Garamond', serif;
+    color: #c4a35a;
+    font-size: 2.5rem;
+    font-weight: 600;
 }
 
 .withdraw-btn {
     padding: 1rem 2rem;
-    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    background: #c4a35a;
     border: none;
     border-radius: 12px;
-    color: #0f0f1a;
+    color: #1a1a1a;
+    font-family: 'Inter', sans-serif;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -412,7 +434,7 @@
 
 .withdraw-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.3);
+    box-shadow: 0 8px 24px rgba(196, 163, 90, 0.3);
 }
 
 /* Responsive */
