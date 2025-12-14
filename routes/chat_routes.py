@@ -202,7 +202,10 @@ def get_nearby_travelers(current_user):
         return jsonify({'error': str(e)}), 500
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 903cb9fbccf072c57bd74e7579de5fa03aa0a744
 # ===========================
 # AI Chat History Endpoints
 # ===========================

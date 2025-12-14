@@ -101,7 +101,8 @@ MAIN ROUTES (2):
 
 ## Files Created/Modified
 
-NEW FILES:
+NEW FILES: 
+
 - services/gemini_service.py (400+ lines)
 - routes/ai_routes.py (300+ lines)
 - test_ai_features.py

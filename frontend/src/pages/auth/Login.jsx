@@ -139,7 +139,7 @@ export default function Login() {
 
     return (
         <div className="min-h-screen luxury-bg-aurora flex items-center justify-center px-4">
-            <div className="w-full max-w-md relative z-10">
+            <div className="w-full max-w-sm relative z-10" style={{ minWidth: 320, maxWidth: 380 }}>
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <h1 className="luxury-heading-gold text-5xl mb-3">Vaaya</h1>
@@ -147,7 +147,7 @@ export default function Login() {
                 </div>
 
                 {/* Login Card */}
-                <div className="glass-card p-8">
+                <div className="glass-card p-6" style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.10)' }}>
                     {displayError && (
                         <div className="mb-6 p-4 rounded-lg text-sm" style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444' }}>
                             {displayError}
@@ -169,7 +169,7 @@ export default function Login() {
                             <Link to="/forgot-password" className="text-sm" style={{ color: '#c4a35a' }}>Forgot password?</Link>
                         </div>
 
-                        <button type="submit" disabled={isLoading} className="w-full gold-button py-3">
+                        <button type="submit" disabled={isLoading} className="w-full gold-button py-2 text-base" style={{ fontWeight: 600, fontSize: '1rem' }}>
                             {isLoading ? 'Signing in...' : 'Sign In'}
                         </button>
                     </form>
@@ -180,7 +180,7 @@ export default function Login() {
                         <div className="flex-1 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}></div>
                     </div>
 
-                    <button onClick={handleGoogleSignIn} disabled={isLoading} className="w-full flex items-center justify-center gap-3 py-3 rounded gold-button-outline">
+                    <button onClick={handleGoogleSignIn} disabled={isLoading} className="w-full flex items-center justify-center gap-2 py-2 rounded gold-button-outline text-base" style={{ fontWeight: 500, fontSize: '0.95rem', minHeight: 0, marginTop: 0 }}>
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                             <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
