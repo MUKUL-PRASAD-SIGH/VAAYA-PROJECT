@@ -1,2 +1,0 @@
-"""Tests package"""
-import pytest
